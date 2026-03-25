@@ -31,7 +31,7 @@ const SDAddItemForm = () => {
                 }
             });
 
-            toast.success('✅ Food item added successfully!');
+            toast.success(' Food item added successfully!');
             
             // Reset form
             setFormData({

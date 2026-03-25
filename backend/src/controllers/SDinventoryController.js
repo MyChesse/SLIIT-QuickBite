@@ -1,6 +1,6 @@
 import MenuItem from "../models/SDMenuItem.js";
 
-// Add new food item
+// Add new food item with clean validation error handling
 export async function addFoodItem(req, res) {
     try {
         const { name, price, category, description, imageUrl, currentStock, lowStockThreshold } = req.body;
@@ -23,9 +23,37 @@ export async function addFoodItem(req, res) {
             message: "Food item added successfully",
             data: savedItem 
         });
+
     } catch (error) {
         console.error("Error in addFoodItem:", error);
-        res.status(500).json({ message: "Internal server error" });
+
+        // Handle Mongoose Validation Errors
+        if (error.name === "ValidationError") {
+            const errors = {};
+            Object.keys(error.errors).forEach(key => {
+                errors[key] = error.errors[key].message;
+            });
+
+            return res.status(400).json({
+                success: false,
+                message: "Validation failed",
+                errors: errors
+            });
+        }
+
+        // Handle duplicate key error (same food name in same canteen)
+        if (error.code === 11000) {
+            return res.status(400).json({
+                success: false,
+                message: "Food item with this name already exists in this canteen"
+            });
+        }
+
+        // Other errors
+        res.status(500).json({ 
+            success: false,
+            message: "Internal server error" 
+        });
     }
 }
 
@@ -46,7 +74,7 @@ export async function getFoodItems(req, res) {
     }
 }
 
-// Update stock + Low Stock Alert (Simplified)
+// Update stock + Low Stock Alert
 export async function updateStock(req, res) {
     try {
         const { quantity } = req.body;
@@ -64,9 +92,8 @@ export async function updateStock(req, res) {
 
         await item.save();
 
-        // LOW STOCK ALERT (Console for now)
         if (item.currentStock < item.lowStockThreshold && oldStock >= item.lowStockThreshold) {
-            console.log(`🚨 LOW STOCK ALERT: ${item.name} has only ${item.currentStock} left in ${item.canteenId}!`);
+            console.log(`🚨 LOW STOCK ALERT: ${item.name} has only ${item.currentStock} left!`);
         }
 
         res.status(200).json({

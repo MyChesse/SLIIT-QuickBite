@@ -22,8 +22,8 @@ router.post("/seed", async (req, res) => {
         await Canteen.deleteMany({});
         const canteens = await Canteen.insertMany([
             { name: "Main Canteen", code: "MAIN", location: "Basement Building", isActive: true },
-            { name: "Mini Canteen", code: "MINI", location: "Faculty Area", isActive: true },
-            { name: "Hostel Canteen", code: "HOSTEL", location: "Hostel Block", isActive: true }
+            { name: "New Canteen", code: "MINI", location: "Faculty Area", isActive: true },
+            { name: "Business Canteen", code: "HOSTEL", location: "Hostel Block", isActive: true }
         ]);
         res.status(201).json({ success: true, data: canteens });
     } catch (error) {

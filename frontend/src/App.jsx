@@ -1,19 +1,25 @@
-import React from 'react'
-import { Routes, Route } from 'react-router'
-import SDInventoryPage from './pages/SDInventoryPage'
+import React from 'react';
+import { Routes, Route } from 'react-router';
+
+// Pages
+import SDInventoryPage from './pages/SDInventoryPage';
+import SDMenuPage from './pages/SDMenuPage';        // ← New Student Menu Page
 
 const App = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <Routes>
-        {/* Staff Inventory Page */}
+        {/* Staff Routes */}
         <Route path="/inventory" element={<SDInventoryPage />} />
-        
-        {/* You can add more routes later */}
-        <Route path="/" element={<h1 className="text-center mt-20 text-2xl">Welcome to SLIIT QuickBite</h1>} />
+
+        {/* Student Routes */}
+        <Route path="/menu" element={<SDMenuPage />} />
+        <Route path="/" element={<SDMenuPage />} />           {/* Default page = Menu */}
+
+        {/* Future routes can be added here */}
       </Routes>
     </div>
-  )
-}
+  );
+};
 
-export default App
+export default App;
