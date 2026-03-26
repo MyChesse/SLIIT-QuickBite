@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { BrowserRouter, Routes, Route, Link, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Link, useLocation } from 'react-router';
 import MenuPage from './components/MenuPage.jsx';
 import CartPage from './components/CartPage.jsx';
 import BookingPage from './components/BookingPage.jsx';
