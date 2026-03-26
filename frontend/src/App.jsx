@@ -3,7 +3,7 @@ import { Routes, Route } from 'react-router';
 
 // Pages
 import SDInventoryPage from './pages/SDInventoryPage';
-import SDMenuPage from './pages/SDMenuPage';        // ← New Student Menu Page
+import SDMenuPage from './pages/SDMenuPage';        
 
 const App = () => {
   return (
@@ -16,7 +16,7 @@ const App = () => {
         <Route path="/menu" element={<SDMenuPage />} />
         <Route path="/" element={<SDMenuPage />} />           {/* Default page = Menu */}
 
-        {/* Future routes can be added here */}
+        
       </Routes>
     </div>
   );

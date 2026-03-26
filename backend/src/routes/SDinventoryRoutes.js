@@ -11,12 +11,12 @@ import { selectCanteen } from "../middleware/SDcanteenMiddleware.js";
 
 const router = express.Router();
 
-router.use(selectCanteen);     // Applies to all routes below
+router.use(selectCanteen);     
 
 router.post("/", addFoodItem);
 router.get("/", getFoodItems);
-router.put("/:id/stock", updateStock);           // ← New
-router.put("/:id/availability", toggleAvailability);  // ← New
+router.put("/:id/stock", updateStock);           
+router.put("/:id/availability", toggleAvailability);  
 router.delete("/:id", deleteFoodItem);
 
 
