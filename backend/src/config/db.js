@@ -9,7 +9,7 @@ import mongoose from 'mongoose';
 
         catch (error) {
         console.error('MongoDB connection error:', error);
-        process.exit(1); // Exit the process with an error code
+        // process.exit(1); // Commented out to allow server to run without DB
        
     }
 };

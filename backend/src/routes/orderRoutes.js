@@ -6,21 +6,27 @@ const router = express.Router();
 // CREATE ORDER
 router.post('/create', async (req, res) => {
   try {
+    console.log('Request body:', req.body); // Log the request body
+
     const { items, total, pickupDate, pickupTime } = req.body;
 
     if (!Array.isArray(items) || items.length === 0) {
+      console.error('Validation error: Cart cannot be empty');
       return res.status(400).json({ error: 'Cart cannot be empty' });
     }
 
     if (!pickupDate) {
+      console.error('Validation error: Pickup date is required');
       return res.status(400).json({ error: 'Pickup date is required' });
     }
 
     if (!pickupTime) {
+      console.error('Validation error: Pickup time is required');
       return res.status(400).json({ error: 'Pickup time is required' });
     }
 
     if (!total || total <= 0) {
+      console.error('Validation error: Total must be greater than 0');
       return res.status(400).json({ error: 'Total must be greater than 0' });
     }
 
@@ -33,6 +39,7 @@ router.post('/create', async (req, res) => {
 
     await newOrder.save();
 
+    console.log('Order created successfully:', newOrder);
     res.status(201).json({
       success: true,
       message: 'Order placed successfully',
@@ -40,8 +47,8 @@ router.post('/create', async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Error creating order:', error.message);
-    res.status(500).json({ error: error.message });
+    console.error('Error creating order:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
   }
 });
 
