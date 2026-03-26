@@ -28,6 +28,7 @@ app.use(express.json());
 // Routes - AFTER CORS
 app.use("/api/inventory", SDinventoryRoutes);
 app.use("/api/canteens", SDcanteenRoutes);
+app.use('/uploads', express.static('uploads'));
 
 const PORT = process.env.PORT || 5001;
 

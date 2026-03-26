@@ -1,9 +1,39 @@
 import MenuItem from "../models/SDMenuItem.js";
-
+import multer from "multer";
+import path from "path";
 // Add new food item with clean validation error handling
+
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, 'uploads/'); // Make sure this folder exists
+    },
+    filename: function (req, file, cb) {
+        cb(null, Date.now() + '-' + file.originalname);
+    }
+});
+
+const upload = multer({
+    storage: storage,
+    limits: { fileSize: 5 * 1024 * 1024 }, // 5MB max
+    fileFilter: function (req, file, cb) {
+        const filetypes = /jpeg|jpg|png|webp/;
+        const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+        const mimetype = filetypes.test(file.mimetype);
+
+        if (extname && mimetype) {
+            return cb(null, true);
+        } else {
+            cb(new Error('Only .png, .jpg, .jpeg, .webp images are allowed!'));
+        }
+    }
+});
+
+
 export async function addFoodItem(req, res) {
     try {
-        const { name, price, category, description, imageUrl, currentStock, lowStockThreshold } = req.body;
+        const { name, price, category, description, currentStock, lowStockThreshold } = req.body;
+
+        const imageUrl = req.file ? `/uploads/${req.file.filename}` : '';
 
         const newItem = new MenuItem({
             canteenId: req.canteenId,

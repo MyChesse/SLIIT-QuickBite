@@ -1,4 +1,5 @@
 import express from "express";
+import multer from "multer";
 import { 
     addFoodItem, 
     getFoodItems, 
@@ -9,11 +10,13 @@ import {
 
 import { selectCanteen } from "../middleware/SDcanteenMiddleware.js";
 
+const upload = multer({ dest: 'uploads/' });
+
 const router = express.Router();
 
 router.use(selectCanteen);     
 
-router.post("/", addFoodItem);
+router.post("/", upload.single("image"), addFoodItem);
 router.get("/", getFoodItems);
 router.put("/:id/stock", updateStock);           
 router.put("/:id/availability", toggleAvailability);  
