@@ -172,3 +172,4 @@ const ComplaintTracker = () => {
 };
 
 export default ComplaintTracker;
+sessionStorage.setItem('complaintId', complaintId); 
