@@ -87,7 +87,7 @@ const AppContent = () => {
       </main>
 
       <footer style={styles.footer}>
-        <p>&copy; 2024 University Canteen Order Management System</p>
+        <p>&copy; 2026 University Canteen  Management System</p>
       </footer>
     </div>
   );

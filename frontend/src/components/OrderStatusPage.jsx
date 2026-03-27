@@ -141,9 +141,17 @@ const OrderStatusPage = () => {
                             </div>
 
                             <div style={styles.orderInfo}>
-                                <p><strong>💰 Total:</strong> Rs. {currentOrder.total}</p>
-                                <p><strong>📅 Pickup Date:</strong> {currentOrder.pickupDate}</p>
-                                <p><strong>🕐 Pickup Time:</strong> {currentOrder.pickupTime}</p>
+                                
+                                <div style={styles.orderInfo}>
+
+    <p><strong>👤 Student Name:</strong> {currentOrder.studentName}</p>
+    <p><strong>🆔 Student ID:</strong> {currentOrder.studentId}</p>
+
+    <p><strong>💰 Total:</strong> Rs. {currentOrder.total}</p>
+    <p><strong>📅 Pickup Date:</strong> {currentOrder.pickupDate}</p>
+    <p><strong>🕐 Pickup Time:</strong> {currentOrder.pickupTime}</p>
+
+</div>
                             </div>
                         </div>
 
@@ -200,9 +208,11 @@ const OrderStatusPage = () => {
                                     </div>
 
                                     <div style={styles.orderInfo}>
-                                        <p><strong>Total:</strong> Rs. {order.total}</p>
-                                        <p><strong>Pickup Date:</strong> {order.pickupDate}</p>
-                                        <p><strong>Pickup Time:</strong> {order.pickupTime}</p>
+                                        <p><strong>👤 Student Name:</strong> {order.studentName}</p>
+                                        <p><strong>🆔 Student ID:</strong> {order.studentId}</p>
+                                        <p><strong>💰 Total:</strong> Rs. {order.total}</p>
+                                        <p><strong>📅 Pickup Date:</strong> {order.pickupDate}</p>
+                                        <p><strong>🕐 Pickup Time:</strong> {order.pickupTime}</p>
                                     </div>
                                 </div>
 

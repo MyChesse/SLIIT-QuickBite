@@ -67,7 +67,7 @@ const MenuPage = ({ addToCart }) => {
     itemPrice: {
       fontSize: '20px',
       fontWeight: 'bold',
-      color: '#1e40af',
+      color: '#af311e',
       marginBottom: '12px'
     },
     button: {

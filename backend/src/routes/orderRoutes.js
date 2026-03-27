@@ -8,7 +8,7 @@ router.post('/create', async (req, res) => {
   try {
     console.log('Request body:', req.body); // Log the request body
 
-    const { items, total, pickupDate, pickupTime } = req.body;
+    const { studentName,studentId,items, total, pickupDate, pickupTime } = req.body;
 
     if (!Array.isArray(items) || items.length === 0) {
       console.error('Validation error: Cart cannot be empty');
@@ -31,11 +31,14 @@ router.post('/create', async (req, res) => {
     }
 
     const newOrder = new Order({
-      items,
-      total,
-      pickupDate,
-      pickupTime
-    });
+  studentName,
+  studentId,
+  items,
+  total,
+  pickupDate,
+  pickupTime,
+  status: 'Pending'
+});
 
     await newOrder.save();
 
