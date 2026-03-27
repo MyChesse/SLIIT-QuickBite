@@ -34,98 +34,103 @@ const Profile = () => {
   };
 
   return (
-    <div style={{ maxWidth: '600px', margin: '2rem auto', padding: '2rem' }}>
-      <h1>Profile</h1>
+    <div className="min-h-screen bg-[#f5f7fb] text-slate-800">
+      <div className="flex min-h-screen w-full">
+        <aside className="hidden lg:flex w-[250px] flex-col bg-white border-r border-slate-200 px-5 py-6">
+          <div className="mb-8">
+            <div className="flex items-center gap-3">
+              <div className="w-11 h-11 rounded-xl bg-[#0056D2] flex items-center justify-center text-white text-lg font-bold shadow-sm">👤</div>
+              <div>
+                <h2 className="text-[24px] leading-none font-bold text-[#0056D2]">Profile</h2>
+                <p className="text-[11px] font-semibold tracking-[0.12em] uppercase text-slate-500 mt-1">Account Center</p>
+              </div>
+            </div>
+          </div>
 
-      <div style={{ marginBottom: '2rem', padding: '1rem', backgroundColor: '#f9f9f9', borderRadius: '8px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '1rem' }}>
-          <div style={{
-            width: '60px',
-            height: '60px',
-            borderRadius: '50%',
-            backgroundColor: '#007bff',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: 'white',
-            fontSize: '24px',
-            marginRight: '1rem'
-          }}>
-            {user?.name?.charAt(0)?.toUpperCase() || 'U'}
-          </div>
-          <div>
-            <h2>{user?.name}</h2>
-            <p>{user?.role}</p>
-          </div>
-        </div>
-      </div>
+          <nav className="space-y-2">
+            <button className="w-full flex items-center gap-3 rounded-xl bg-[#EAF4FF] text-[#0056D2] px-4 py-3 text-sm font-semibold">
+              <span className="text-base">🧑</span><span>Profile</span>
+            </button>
+            <button className="w-full flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-slate-600 hover:bg-slate-50 transition">
+              <span className="text-base">🔒</span><span>Security</span>
+            </button>
+            <button className="w-full flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-slate-600 hover:bg-slate-50 transition">
+              <span className="text-base">📧</span><span>Notifications</span>
+            </button>
+          </nav>
+        </aside>
 
-      <div style={{ marginBottom: '2rem' }}>
-        <h3>Account Information</h3>
-        <div style={{ display: 'grid', gap: '1rem' }}>
-          <div>
-            <strong>Full Name:</strong> {user?.name}
+        <main className="flex-1 px-4 py-6 sm:px-6 lg:px-8">
+          <div className="bg-white border border-slate-200 rounded-[24px] p-6 shadow-sm mb-6">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <div>
+                <h1 className="text-[28px] font-bold text-[#0056D2] tracking-tight">My Profile</h1>
+                <p className="mt-1 text-sm text-slate-500">View and update your personal account details</p>
+              </div>
+              <button onClick={() => setEditing(!editing)} className="h-11 rounded-xl border border-[#FF7A00] bg-[#0056D2] px-5 text-sm font-semibold text-white hover:bg-blue-700 transition">
+                {editing ? 'Cancel Edit' : 'Edit Profile'}
+              </button>
+            </div>
           </div>
-          <div>
-            <strong>Email:</strong> {user?.email}
-          </div>
-          <div>
-            <strong>Role:</strong> {user?.role}
-          </div>
-          <div>
-            <strong>Account Created:</strong> {user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}
-          </div>
-          <div>
-            <strong>Last Login:</strong> {user?.lastLogin ? new Date(user.lastLogin).toLocaleDateString() : 'N/A'}
-          </div>
-        </div>
-      </div>
 
-      <div>
-        <button
-          onClick={() => setEditing(!editing)}
-          style={{
-            padding: '0.5rem 1rem',
-            backgroundColor: '#28a745',
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: 'pointer'
-          }}
-        >
-          {editing ? 'Cancel Edit' : 'Edit Profile'}
-        </button>
-
-        {editing && (
-          <form onSubmit={handleSubmit} style={{ marginTop: '1rem' }}>
-            <div style={{ marginBottom: '1rem' }}>
-              <label>Full Name:</label>
-              <input
-                type="text"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                required
-                style={{ width: '100%', padding: '0.5rem' }}
-              />
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+            <div className="rounded-[20px] border border-slate-200 bg-white p-5 shadow-sm">
+              <div className="flex items-center gap-4">
+                <div className="h-16 w-16 rounded-full bg-[#0056D2] flex items-center justify-center text-3xl font-bold text-white">{user?.name?.charAt(0)?.toUpperCase() || 'U'}</div>
+                <div>
+                  <h2 className="text-xl font-semibold text-slate-900">{user?.name || 'Unknown User'}</h2>
+                  <p className="text-sm text-slate-500">{user?.email || 'No email'}</p>
+                </div>
+              </div>
+              <div className="mt-4 space-y-2">
+                <p className="text-sm text-slate-500"><span className="font-semibold text-slate-700">Role:</span> {user?.role || 'N/A'}</p>
+                <p className="text-sm text-slate-500"><span className="font-semibold text-slate-700">Joined:</span> {user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}</p>
+                <p className="text-sm text-slate-500"><span className="font-semibold text-slate-700">Last Login:</span> {user?.lastLogin ? new Date(user.lastLogin).toLocaleDateString() : 'N/A'}</p>
+              </div>
             </div>
 
-            <button
-              type="submit"
-              disabled={loading}
-              style={{
-                padding: '0.5rem 1rem',
-                backgroundColor: '#007bff',
-                color: 'white',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: loading ? 'not-allowed' : 'pointer'
-              }}
-            >
-              {loading ? 'Updating...' : 'Update Profile'}
-            </button>
-          </form>
-        )}
+            <div className="lg:col-span-2 rounded-[20px] border border-slate-200 bg-white p-5 shadow-sm">
+              <h3 className="text-lg font-semibold text-slate-800 mb-4">Account Details</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="rounded-lg border border-[#475569] bg-[#EEF2FF] p-4">
+                  <p className="text-xs uppercase tracking-wider text-[#FF7A00] font-semibold">Full Name</p>
+                  <p className="mt-1 text-base font-medium text-slate-800">{user?.name || 'N/A'}</p>
+                </div>
+                <div className="rounded-lg border border-[#475569] bg-[#EEF2FF] p-4">
+                  <p className="text-xs uppercase tracking-wider text-[#FF7A00] font-semibold">Email</p>
+                  <p className="mt-1 text-base font-medium text-slate-800">{user?.email || 'N/A'}</p>
+                </div>
+                <div className="rounded-lg border border-[#475569] bg-[#EEF2FF] p-4">
+                  <p className="text-xs uppercase tracking-wider text-[#FF7A00] font-semibold">Role</p>
+                  <p className="mt-1 text-base font-medium text-slate-800">{user?.role || 'N/A'}</p>
+                </div>
+                <div className="rounded-lg border border-[#475569] bg-[#EEF2FF] p-4">
+                  <p className="text-xs uppercase tracking-wider text-[#FF7A00] font-semibold">Status</p>
+                  <p className="mt-1 text-base font-medium text-slate-800">Active</p>
+                </div>
+              </div>
+
+              {editing && (
+                <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-600 mb-1">Name</label>
+                    <input
+                      type="text"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleChange}
+                      required
+                      className="w-full rounded-lg border border-slate-300 bg-white p-3 text-slate-900 outline-none focus:border-[#FF7A00] focus:ring-2 focus:ring-[#FF7A00]/40"
+                    />
+                  </div>
+                  <button type="submit" disabled={loading} className="w-full rounded-lg bg-[#FF7A00] px-4 py-3 text-sm font-semibold text-white hover:bg-[#cc6a00] transition disabled:cursor-not-allowed disabled:opacity-70">
+                    {loading ? 'Updating...' : 'Save Changes'}
+                  </button>
+                </form>
+              )}
+            </div>
+          </div>
+        </main>
       </div>
     </div>
   );

@@ -1,32 +1,56 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
+import toast from 'react-hot-toast';
 
 const AdminDashboard = () => {
   const { user } = useAuth();
   const [summary, setSummary] = useState({});
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [roleFilter, setRoleFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pagination, setPagination] = useState({});
+  const [showInviteModal, setShowInviteModal] = useState(false);
+  const [inviteForm, setInviteForm] = useState({
+    name: '',
+    email: '',
+    password: '',
+    role: 'student'
+  });
+  const [inviting, setInviting] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const [summaryRes, usersRes] = await Promise.all([
           axios.get('http://localhost:5001/api/admin/dashboard-summary'),
-          axios.get('http://localhost:5001/api/admin/users')
+          axios.get('http://localhost:5001/api/admin/users', {
+            params: {
+              search: searchTerm,
+              role: roleFilter,
+              status: statusFilter,
+              page: currentPage,
+              limit: 10
+            }
+          })
         ]);
 
         setSummary(summaryRes.data);
-        setUsers(usersRes.data);
+        setUsers(usersRes.data.users);
+        setPagination(usersRes.data.pagination);
       } catch (error) {
         console.error('Failed to fetch admin data:', error);
+        toast.error('Failed to load data');
       } finally {
         setLoading(false);
       }
     };
 
     fetchData();
-  }, []);
+  }, [searchTerm, roleFilter, statusFilter, currentPage]);
 
   const summaryCards = [
     {
@@ -38,20 +62,20 @@ const AdminDashboard = () => {
       icon: '👥'
     },
     {
-      title: 'ACTIVE STUDENTS',
-      value: summary.activeStudents || 0,
+      title: 'ACTIVE USERS',
+      value: summary.activeUsers || 0,
       badge: 'Live',
-      badgeColor: 'text-orange-500',
-      barColor: 'bg-orange-500',
-      icon: '🎓'
+      badgeColor: 'text-green-600',
+      barColor: 'bg-green-600',
+      icon: '✅'
     },
     {
-      title: 'STAFF MEMBERS',
-      value: summary.staffMembers || 0,
-      badge: 'Authorized',
-      badgeColor: 'text-orange-500',
-      barColor: 'bg-orange-500',
-      icon: '🪪'
+      title: 'SUSPENDED USERS',
+      value: summary.suspendedUsers || 0,
+      badge: 'Inactive',
+      badgeColor: 'text-red-600',
+      barColor: 'bg-red-600',
+      icon: '🚫'
     }
   ];
 
@@ -97,6 +121,65 @@ const AdminDashboard = () => {
           label: status
         };
     }
+  };
+
+  // Handlers
+  const handleSearch = (e) => {
+    setSearchTerm(e.target.value);
+    setCurrentPage(1);
+  };
+
+  const handleRoleFilter = (e) => {
+    setRoleFilter(e.target.value.toLowerCase());
+    setCurrentPage(1);
+  };
+
+  const handleStatusFilter = (e) => {
+    setStatusFilter(e.target.value.toLowerCase());
+    setCurrentPage(1);
+  };
+
+  const clearFilters = () => {
+    setSearchTerm('');
+    setRoleFilter('all');
+    setStatusFilter('all');
+    setCurrentPage(1);
+  };
+
+  const handleInviteUser = async (e) => {
+    e.preventDefault();
+    setInviting(true);
+    try {
+      await axios.post('http://localhost:5001/api/admin/users', inviteForm);
+      toast.success('User invited successfully');
+      setShowInviteModal(false);
+      setInviteForm({ name: '', email: '', password: '', role: 'student' });
+      // Refresh users
+      const usersRes = await axios.get('http://localhost:5001/api/admin/users', {
+        params: { search: searchTerm, role: roleFilter, status: statusFilter, page: currentPage, limit: 10 }
+      });
+      setUsers(usersRes.data.users);
+      setPagination(usersRes.data.pagination);
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to invite user');
+    } finally {
+      setInviting(false);
+    }
+  };
+
+  const handleViewProfile = async (userId) => {
+    try {
+      const res = await axios.get(`http://localhost:5001/api/admin/users/${userId}`);
+      // For now, just show in console. You can implement modal or navigation
+      console.log('User details:', res.data);
+      toast.success('User details loaded');
+    } catch {
+      toast.error('Failed to load user details');
+    }
+  };
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
   };
 
   if (loading) {
@@ -196,6 +279,8 @@ const AdminDashboard = () => {
                   <input
                     type="text"
                     placeholder="Search by name, ID or email..."
+                    value={searchTerm}
+                    onChange={handleSearch}
                     className="w-full h-12 rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-4 text-sm outline-none focus:bg-white focus:border-blue-500"
                   />
                 </div>
@@ -208,7 +293,10 @@ const AdminDashboard = () => {
                   ⇩
                 </button>
 
-                <button className="h-12 px-5 rounded-xl bg-blue-600 text-white text-sm font-semibold shadow-sm hover:bg-blue-700 transition">
+                <button 
+                  onClick={() => setShowInviteModal(true)}
+                  className="h-12 px-5 rounded-xl bg-blue-600 text-white text-sm font-semibold shadow-sm hover:bg-blue-700 transition"
+                >
                   + Invite User
                 </button>
               </div>
@@ -256,21 +344,37 @@ const AdminDashboard = () => {
               <div className="flex flex-col sm:flex-row sm:items-center gap-3">
                 <span className="text-sm font-medium text-slate-600">Filter By:</span>
 
-                <select className="h-11 rounded-xl border border-slate-200 bg-white px-4 text-sm text-slate-700 outline-none focus:border-blue-500">
-                  <option>All Roles</option>
+                <select 
+                  value={roleFilter}
+                  onChange={handleRoleFilter}
+                  className="h-11 rounded-xl border border-slate-200 bg-white px-4 text-sm text-slate-700 outline-none focus:border-blue-500"
+                >
+                  <option value="all">All Roles</option>
+                  <option value="student">Student</option>
+                  <option value="staff">Staff</option>
+                  <option value="admin">Admin</option>
                 </select>
 
-                <select className="h-11 rounded-xl border border-slate-200 bg-white px-4 text-sm text-slate-700 outline-none focus:border-blue-500">
-                  <option>All Status</option>
+                <select 
+                  value={statusFilter}
+                  onChange={handleStatusFilter}
+                  className="h-11 rounded-xl border border-slate-200 bg-white px-4 text-sm text-slate-700 outline-none focus:border-blue-500"
+                >
+                  <option value="all">All Status</option>
+                  <option value="active">Active</option>
+                  <option value="suspended">Suspended</option>
                 </select>
 
-                <button className="h-11 px-4 rounded-xl bg-white text-blue-700 text-sm font-semibold border border-slate-200 hover:bg-slate-50">
+                <button 
+                  onClick={clearFilters}
+                  className="h-11 px-4 rounded-xl bg-white text-blue-700 text-sm font-semibold border border-slate-200 hover:bg-slate-50"
+                >
                   Clear Filters
                 </button>
               </div>
 
               <p className="text-sm text-slate-500">
-                Showing {Math.min(users.length, 10)} of {summary.totalUsers || users.length} users
+                Showing {users.length} of {pagination.totalUsers || 0} users
               </p>
             </div>
           </div>
@@ -300,7 +404,7 @@ const AdminDashboard = () => {
                 </thead>
 
                 <tbody>
-                  {users.slice(0, 5).map((item) => {
+                  {users.map((item) => {
                     const statusInfo = getStatusStyles(item.status);
 
                     return (
@@ -352,12 +456,18 @@ const AdminDashboard = () => {
 
                         <td className="px-6 py-5">
                           <div className="flex items-center gap-4">
-                            <button className="text-sm font-semibold text-blue-600 hover:text-blue-700">
+                            <button 
+                              onClick={() => handleViewProfile(item._id)}
+                              className="text-sm font-semibold text-blue-600 hover:text-blue-700"
+                            >
                               View Profile
                             </button>
-                            <button className="text-slate-400 hover:text-slate-600">
-                              ⋮
-                            </button>
+                            <div className="relative">
+                              <button className="text-slate-400 hover:text-slate-600 text-lg">
+                                ⋮
+                              </button>
+                              {/* Dropdown menu can be added here */}
+                            </div>
                           </div>
                         </td>
                       </tr>
@@ -377,33 +487,115 @@ const AdminDashboard = () => {
 
             {/* Pagination */}
             <div className="flex items-center justify-between px-6 py-5 border-t border-slate-200">
-              <button className="text-sm font-medium text-slate-500 hover:text-slate-700">
+              <button 
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={!pagination.hasPrev}
+                className="text-sm font-medium text-slate-500 hover:text-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
                 ‹ Previous
               </button>
 
               <div className="flex items-center gap-2">
-                <button className="w-9 h-9 rounded-lg bg-blue-600 text-white text-sm font-semibold">
-                  1
-                </button>
-                <button className="w-9 h-9 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-100">
-                  2
-                </button>
-                <button className="w-9 h-9 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-100">
-                  3
-                </button>
-                <span className="px-1 text-slate-400">...</span>
-                <button className="text-sm font-medium text-slate-600 hover:text-slate-800">
-                  125
-                </button>
+                {Array.from({ length: pagination.totalPages || 1 }, (_, i) => i + 1).map((page) => (
+                  <button
+                    key={page}
+                    onClick={() => handlePageChange(page)}
+                    className={`w-9 h-9 rounded-lg text-sm font-semibold ${
+                      page === currentPage
+                        ? 'bg-blue-600 text-white'
+                        : 'text-slate-600 hover:bg-slate-100'
+                    }`}
+                  >
+                    {page}
+                  </button>
+                ))}
               </div>
 
-              <button className="text-sm font-medium text-slate-500 hover:text-slate-700">
+              <button 
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={!pagination.hasNext}
+                className="text-sm font-medium text-slate-500 hover:text-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
                 Next ›
               </button>
             </div>
           </div>
         </main>
       </div>
+
+      {/* Invite User Modal */}
+      {showInviteModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-md mx-4">
+            <h2 className="text-xl font-bold text-slate-800 mb-4">Invite New User</h2>
+            <form onSubmit={handleInviteUser}>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Name</label>
+                  <input
+                    type="text"
+                    required
+                    value={inviteForm.name}
+                    onChange={(e) => setInviteForm({...inviteForm, name: e.target.value})}
+                    className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-blue-500"
+                    placeholder="Enter full name"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Email</label>
+                  <input
+                    type="email"
+                    required
+                    value={inviteForm.email}
+                    onChange={(e) => setInviteForm({...inviteForm, email: e.target.value})}
+                    className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-blue-500"
+                    placeholder="Enter email address"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Password</label>
+                  <input
+                    type="password"
+                    required
+                    value={inviteForm.password}
+                    onChange={(e) => setInviteForm({...inviteForm, password: e.target.value})}
+                    className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-blue-500"
+                    placeholder="Enter password"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Role</label>
+                  <select
+                    value={inviteForm.role}
+                    onChange={(e) => setInviteForm({...inviteForm, role: e.target.value})}
+                    className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-blue-500"
+                  >
+                    <option value="student">Student</option>
+                    <option value="staff">Staff</option>
+                    <option value="admin">Admin</option>
+                  </select>
+                </div>
+              </div>
+              <div className="flex gap-3 mt-6">
+                <button
+                  type="button"
+                  onClick={() => setShowInviteModal(false)}
+                  className="flex-1 px-4 py-2 border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={inviting}
+                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                >
+                  {inviting ? 'Inviting...' : 'Invite User'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
