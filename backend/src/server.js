@@ -9,7 +9,7 @@ dotenv.config();
 
 const app = express();
 
-// ✅ IMPORTANT: CORS must come BEFORE routes
+
 app.use(
   cors({
     origin: "http://localhost:5173",
@@ -19,13 +19,13 @@ app.use(
   })
 );
 
-// Handle preflight requests
+
 app.options('*', cors());
 
 // Body parser middleware
 app.use(express.json());
 
-// Routes - AFTER CORS
+// Routes 
 app.use("/api/inventory", SDinventoryRoutes);
 app.use("/api/canteens", SDcanteenRoutes);
 app.use('/uploads', express.static('uploads'));
@@ -34,7 +34,7 @@ const PORT = process.env.PORT || 5001;
 
 connectDB().then(() => {
   app.listen(PORT, () => {
-    console.log("✅ Server is running on Port: ", PORT);
-    console.log("📍 CORS enabled for http://localhost:5173");
+    console.log("Server is running on Port: ", PORT);
+    console.log("CORS enabled for http://localhost:5173");
   });
 });

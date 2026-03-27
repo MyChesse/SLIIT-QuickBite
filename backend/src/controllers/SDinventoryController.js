@@ -1,11 +1,11 @@
 import MenuItem from "../models/SDMenuItem.js";
 import multer from "multer";
 import path from "path";
-// Add new food item with clean validation error handling
+
 
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        cb(null, 'uploads/'); // Make sure this folder exists
+        cb(null, 'uploads/'); 
     },
     filename: function (req, file, cb) {
         cb(null, Date.now() + '-' + file.originalname);
@@ -14,7 +14,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({
     storage: storage,
-    limits: { fileSize: 5 * 1024 * 1024 }, // 5MB max
+    limits: { fileSize: 5 * 1024 * 1024 }, 
     fileFilter: function (req, file, cb) {
         const filetypes = /jpeg|jpg|png|webp/;
         const extname = filetypes.test(path.extname(file.originalname).toLowerCase());

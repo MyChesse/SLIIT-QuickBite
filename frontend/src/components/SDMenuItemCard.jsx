@@ -94,7 +94,7 @@ const SDMenuItemCard = ({ item }) => {
                     }`}
                 >
                     <span className="material-symbols-outlined text-xl"></span>
-                    {isAdded ? 'Added to Cart ✓' : 'Add to Cart'}
+                    {isAdded ? 'Added to Cart ' : 'Add to Cart'}
                 </button>
             </div>
         </div>

@@ -33,7 +33,7 @@ const SDCanteenSelector = () => {
         <div className="flex items-center gap-3 bg-white border border-gray-200 rounded-2xl shadow-sm px-5 py-2 hover:shadow-md transition-all">
             {/* Icon */}
             <div className="text-orange-500">
-                📍
+                
             </div>
 
             {/* Label */}

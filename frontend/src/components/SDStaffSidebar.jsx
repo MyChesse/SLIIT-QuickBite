@@ -23,7 +23,7 @@ const SDStaffSidebar = () => {
                     </div>
                     <div>
                         <span className="font-bold text-2xl tracking-tighter text-gray-900">QuickBite</span>
-                        <p className="text-xs text-gray-500 -mt-1">STAFF PORTAL</p>
+                        <p className="text-xs text-gray-500 -mt-1 ">STAFF PORTAL</p>
                     </div>
                 </div>
             </div>
@@ -58,13 +58,13 @@ const SDStaffSidebar = () => {
 
             {/* Bottom User Info */}
             <div className="p-6 border-t border-gray-100">
-                <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-2xl flex items-center justify-center text-2xl">
+                <div className="flex items-center gap-3 bg-gray-200 rounded-2xl px-4 py-2">
+                    <div className="w-10 h-10 bg-gradient-to-br from-blue-300 to-indigo-100 rounded-2xl flex items-center justify-center text-2xl">
                         👨‍💼
                     </div>
-                    <div>
-                        <p className="font-medium text-sm text-gray-800">Staff User</p>
-                        <p className="text-xs text-gray-500">Canteen Staff</p>
+                    <div className="flex flex-col px-3 py-1 rounded-lg">
+                        <p className="font-medium text-sm text-gray-800 ">Staff User</p>
+                        <p className="text-xs text-gray-500">Canteen Administrator</p>
                     </div>
                 </div>
 
