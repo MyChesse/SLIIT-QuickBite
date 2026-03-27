@@ -17,9 +17,16 @@ const FeedbackForm = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+
+    if (name === 'name' && value !== '' && !/^[A-Za-z\s]*$/.test(value)) {
+      return;
+    }
+
+    const nextValue = name === 'email' ? value.toLowerCase() : value;
+
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [name]: nextValue
     }));
   };
 
@@ -28,8 +35,16 @@ const FeedbackForm = () => {
       setError('Name is required');
       return false;
     }
+    if (!/^[A-Za-z\s]+$/.test(formData.name.trim())) {
+      setError('Name can contain only letters and spaces');
+      return false;
+    }
     if (!formData.email.trim()) {
       setError('Email is required');
+      return false;
+    }
+    if (formData.email !== formData.email.toLowerCase()) {
+      setError('Email must be lowercase');
       return false;
     }
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -39,6 +54,10 @@ const FeedbackForm = () => {
     }
     if (!formData.message.trim()) {
       setError('Message is required');
+      return false;
+    }
+    if (formData.message.trim().length < 30) {
+      setError('Message must be at least 30 characters');
       return false;
     }
     if (formData.rating < 1 || formData.rating > 5) {
@@ -93,6 +112,8 @@ const FeedbackForm = () => {
             value={formData.name}
             onChange={handleChange}
             required
+            pattern="[A-Za-z ]+"
+            title="Name can contain only letters and spaces"
             style={{ width: '100%', padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }}
           />
         </div>
@@ -145,7 +166,9 @@ const FeedbackForm = () => {
             value={formData.message}
             onChange={handleChange}
             required
+            minLength={30}
             rows="4"
+            title="Message must be at least 30 characters"
             style={{ width: '100%', padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }}
           />
         </div>

@@ -17,12 +17,20 @@ const ComplaintForm = () => {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
+  const today = new Date().toISOString().split('T')[0];
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+
+    if (name === 'name' && value !== '' && !/^[A-Za-z\s]*$/.test(value)) {
+      return;
+    }
+
+    const nextValue = name === 'email' ? value.toLowerCase() : value;
+
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [name]: nextValue
     }));
   };
 
@@ -49,8 +57,16 @@ const ComplaintForm = () => {
       setError('Name is required');
       return false;
     }
+    if (!/^[A-Za-z\s]+$/.test(formData.name.trim())) {
+      setError('Name can contain only letters and spaces');
+      return false;
+    }
     if (!formData.email.trim()) {
       setError('Email is required');
+      return false;
+    }
+    if (formData.email !== formData.email.toLowerCase()) {
+      setError('Email must be lowercase');
       return false;
     }
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -68,6 +84,10 @@ const ComplaintForm = () => {
     }
     if (!formData.issueDate) {
       setError('Issue date is required');
+      return false;
+    }
+    if (formData.issueDate > today) {
+      setError('Issue date cannot be in the future');
       return false;
     }
     return true;
@@ -125,6 +145,8 @@ const ComplaintForm = () => {
             value={formData.name}
             onChange={handleChange}
             required
+            pattern="[A-Za-z ]+"
+            title="Name can contain only letters and spaces"
             style={{ width: '100%', padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }}
           />
         </div>
@@ -204,6 +226,7 @@ const ComplaintForm = () => {
             value={formData.issueDate}
             onChange={handleChange}
             required
+            max={today}
             style={{ width: '100%', padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }}
           />
         </div>

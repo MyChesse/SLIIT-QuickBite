@@ -41,193 +41,132 @@ const ComplaintTracker = () => {
     }
   };
 
-  const getStatusColor = (status) => {
+  const getStatusBadgeClass = (status) => {
     switch (status) {
       case 'Pending':
-        return '#ffc107';
+        return 'bg-[#FF7A00]/15 text-[#A93802] border border-[#FF7A00]/35';
       case 'In Review':
-        return '#17a2b8';
+        return 'bg-[#0056D2]/12 text-[#0056D2] border border-[#0056D2]/30';
       case 'Resolved':
-        return '#28a745';
+        return 'bg-emerald-50 text-emerald-700 border border-emerald-200';
       case 'Rejected':
-        return '#dc3545';
+        return 'bg-[#A93802]/12 text-[#A93802] border border-[#A93802]/30';
       default:
-        return '#6c757d';
+        return 'bg-slate-100 text-slate-600 border border-slate-200';
     }
   };
 
-  const getPriorityColor = (priority) => {
+  const getPriorityBadgeClass = (priority) => {
     switch (priority) {
       case 'Low':
-        return '#28a745';
+        return 'bg-emerald-50 text-emerald-700 border border-emerald-200';
       case 'Medium':
-        return '#ffc107';
+        return 'bg-[#FF7A00]/15 text-[#A93802] border border-[#FF7A00]/35';
       case 'High':
-        return '#dc3545';
+        return 'bg-[#A93802]/12 text-[#A93802] border border-[#A93802]/30';
       default:
-        return '#6c757d';
+        return 'bg-slate-100 text-slate-600 border border-slate-200';
     }
   };
 
   return (
-    <div style={{ maxWidth: '600px', margin: '0 auto', padding: '20px' }}>
-      <h1>Track Complaint</h1>
-      <p>Enter your complaint ID to check the status of your complaint.</p>
+    <div className="relative overflow-hidden px-4 pb-16 pt-8 sm:px-6 lg:px-8">
+      <div className="mx-auto w-full max-w-5xl">
+        <section className="rounded-3xl border border-[#0056D2]/20 bg-white/90 p-6 shadow-[0_26px_75px_-42px_rgba(0,86,210,0.52)] backdrop-blur-sm sm:p-8">
+          <span className="inline-flex rounded-full border border-[#0056D2]/25 bg-[#0056D2]/10 px-4 py-1 text-xs font-semibold tracking-[0.2em] text-[#0056D2]">
+            QUICKBITE TRACKER
+          </span>
+          <h1 className="mt-4 text-3xl font-bold leading-tight text-slate-900 sm:text-4xl">
+            Track your complaint in real time
+          </h1>
+          <p className="mt-3 text-sm text-[#475569] sm:text-base">
+            Enter your complaint ID to see current status, priority, timeline details, and admin response.
+          </p>
 
-      <form onSubmit={handleSearch} style={{ marginBottom: '30px' }}>
-        <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
-          <div style={{ flex: 1 }}>
-            <input
-              type="text"
-              value={complaintId}
-              onChange={handleInputChange}
-              placeholder="Enter Complaint ID (e.g., CMP-1001)"
-              style={{
-                width: '100%',
-                padding: '10px',
-                border: '1px solid #ccc',
-                borderRadius: '4px',
-                fontSize: '16px'
-              }}
-            />
+          <form onSubmit={handleSearch} className="mt-6">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+              <input
+                type="text"
+                value={complaintId}
+                onChange={handleInputChange}
+                placeholder="Enter Complaint ID (e.g., CMP-1001)"
+                className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-800 outline-none transition focus:border-[#0056D2] focus:ring-2 focus:ring-[#0056D2]/20"
+              />
+              <button
+                type="submit"
+                disabled={loading}
+                className="inline-flex min-w-32 items-center justify-center rounded-2xl bg-[#0056D2] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#0b4fb8] disabled:cursor-not-allowed disabled:bg-slate-300"
+              >
+                {loading ? 'Searching...' : 'Track'}
+              </button>
+            </div>
+          </form>
+        </section>
+
+        {error && (
+          <div className="mt-5 rounded-2xl border border-[#A93802]/30 bg-[#A93802]/10 px-4 py-3 text-sm font-medium text-[#A93802]">
+            {error}
           </div>
-          <button
-            type="submit"
-            disabled={loading}
-            style={{
-              padding: '10px 20px',
-              backgroundColor: loading ? '#ccc' : '#007bff',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: loading ? 'not-allowed' : 'pointer',
-              fontSize: '16px'
-            }}
-          >
-            {loading ? 'Searching...' : 'Track'}
-          </button>
-        </div>
-      </form>
+        )}
 
-      {error && (
-        <div style={{
-          color: 'red',
-          padding: '10px',
-          backgroundColor: '#f8d7da',
-          border: '1px solid #f5c6cb',
-          borderRadius: '4px',
-          marginBottom: '20px'
-        }}>
-          {error}
-        </div>
-      )}
+        {complaint && (
+          <section className="mt-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-[0_14px_34px_-26px_rgba(15,23,42,0.45)] sm:p-7">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <p className="text-sm font-semibold tracking-wide text-[#0056D2]">{complaint.complaintId}</p>
+                <h2 className="mt-1 text-2xl font-bold text-slate-900">{complaint.subject}</h2>
+                <p className="mt-1 text-sm text-[#475569]">Category: {complaint.category}</p>
+              </div>
 
-      {complaint && (
-        <div style={{
-          border: '1px solid #ddd',
-          borderRadius: '8px',
-          padding: '20px',
-          backgroundColor: '#f9f9f9'
-        }}>
-          <h2 style={{ marginBottom: '20px', color: '#333' }}>Complaint Details</h2>
-          
-          <div style={{ marginBottom: '15px' }}>
-            <strong>Complaint ID:</strong> {complaint.complaintId}
-          </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <span className={`rounded-full px-3 py-1 text-xs font-semibold ${getPriorityBadgeClass(complaint.priority)}`}>
+                  {complaint.priority} Priority
+                </span>
+                <span className={`rounded-full px-3 py-1 text-xs font-semibold ${getStatusBadgeClass(complaint.status)}`}>
+                  {complaint.status}
+                </span>
+              </div>
+            </div>
 
-          <div style={{ marginBottom: '15px' }}>
-            <strong>Subject:</strong> {complaint.subject}
-          </div>
+            <div className="mt-5 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+              <p className="text-sm leading-relaxed text-slate-700">{complaint.description}</p>
+            </div>
 
-          <div style={{ marginBottom: '15px' }}>
-            <strong>Category:</strong> {complaint.category}
-          </div>
+            <div className="mt-5 grid gap-3 text-sm text-[#475569] sm:grid-cols-2">
+              <p>
+                <span className="font-semibold text-slate-700">Date of Issue:</span> {new Date(complaint.issueDate).toLocaleDateString()}
+              </p>
+              <p>
+                <span className="font-semibold text-slate-700">Submitted On:</span> {new Date(complaint.createdAt).toLocaleDateString()}
+              </p>
+            </div>
 
-          <div style={{ marginBottom: '15px' }}>
-            <strong>Priority:</strong> 
-            <span style={{
-              marginLeft: '10px',
-              padding: '4px 8px',
-              borderRadius: '4px',
-              color: 'white',
-              backgroundColor: getPriorityColor(complaint.priority),
-              fontSize: '14px'
-            }}>
-              {complaint.priority}
-            </span>
-          </div>
-
-          <div style={{ marginBottom: '15px' }}>
-            <strong>Status:</strong> 
-            <span style={{
-              marginLeft: '10px',
-              padding: '4px 8px',
-              borderRadius: '4px',
-              color: 'white',
-              backgroundColor: getStatusColor(complaint.status),
-              fontSize: '14px'
-            }}>
-              {complaint.status}
-            </span>
-          </div>
-
-          <div style={{ marginBottom: '15px' }}>
-            <strong>Description:</strong>
-            <p style={{ marginTop: '5px', lineHeight: '1.5' }}>{complaint.description}</p>
-          </div>
-
-          <div style={{ marginBottom: '15px' }}>
-            <strong>Date of Issue:</strong> {new Date(complaint.issueDate).toLocaleDateString()}
-          </div>
-
-          <div style={{ marginBottom: '15px' }}>
-            <strong>Submitted On:</strong> {new Date(complaint.createdAt).toLocaleDateString()}
-          </div>
-
-          {complaint.photo && (
-            <div style={{ marginBottom: '15px' }}>
-              <strong>Photo:</strong>
-              <div style={{ marginTop: '10px' }}>
+            {complaint.photo && (
+              <div className="mt-5">
+                <p className="mb-2 text-sm font-semibold text-slate-800">Attached Photo</p>
                 <img
                   src={`http://localhost:5001/${complaint.photo}`}
                   alt="Complaint photo"
-                  style={{
-                    maxWidth: '100%',
-                    maxHeight: '300px',
-                    border: '1px solid #ddd',
-                    borderRadius: '4px'
-                  }}
+                  className="h-auto max-h-80 w-full rounded-2xl border border-slate-200 object-cover"
                 />
               </div>
-            </div>
-          )}
+            )}
 
-          {complaint.adminReply && (
-            <div style={{
-              marginTop: '20px',
-              padding: '15px',
-              backgroundColor: '#e7f3ff',
-              border: '1px solid #b3d9ff',
-              borderRadius: '4px'
-            }}>
-              <strong>Admin Reply:</strong>
-              <p style={{ marginTop: '5px', lineHeight: '1.5' }}>{complaint.adminReply}</p>
-            </div>
-          )}
+            {complaint.adminReply && (
+              <div className="mt-5 rounded-2xl border border-[#0056D2]/25 bg-[#0056D2]/10 p-4">
+                <p className="text-xs font-semibold uppercase tracking-wide text-[#0056D2]">Admin Reply</p>
+                <p className="mt-2 text-sm leading-relaxed text-[#1e3a8a]">{complaint.adminReply}</p>
+              </div>
+            )}
 
-          {!complaint.adminReply && complaint.status !== 'Pending' && (
-            <div style={{
-              marginTop: '20px',
-              padding: '15px',
-              backgroundColor: '#fff3cd',
-              border: '1px solid #ffeaa7',
-              borderRadius: '4px'
-            }}>
-              <em>No admin reply yet. Please check back later.</em>
-            </div>
-          )}
-        </div>
-      )}
+            {!complaint.adminReply && complaint.status !== 'Pending' && (
+              <div className="mt-5 rounded-2xl border border-[#FF7A00]/30 bg-[#FF7A00]/10 p-4 text-sm text-[#A93802]">
+                <em>No admin reply yet. Please check back later.</em>
+              </div>
+            )}
+          </section>
+        )}
+      </div>
     </div>
   );
 };
