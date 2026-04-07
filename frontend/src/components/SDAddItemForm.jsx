@@ -44,7 +44,7 @@ const SDAddItemForm = () => {
                 }
             });
 
-            toast.success('✅ Food item added successfully!');
+            toast.success(' Food item added successfully!');
             setFormData({ name: '', price: '', category: 'Short Eats', description: '', currentStock: 50, lowStockThreshold: 10, imageFile: null, imagePreview: null });
             window.dispatchEvent(new Event('inventoryUpdated'));
         } catch (error) {
