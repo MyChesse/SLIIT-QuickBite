@@ -82,4 +82,26 @@ router.get('/:id', async (req, res) => {
   }
 });
 
+// Cancel an order
+router.put('/:id/cancel', async (req, res) => {
+    try {
+        const order = await Order.findById(req.params.id); // Make sure Order is imported
+        if (!order) {
+            return res.status(404).json({ message: 'Order not found' });
+        }
+
+        // Only allow cancelling if not already completed or cancelled
+        if (order.status === 'Completed' || order.status === 'Cancelled') {
+            return res.status(400).json({ message: `Cannot cancel an order that is ${order.status}` });
+        }
+
+        order.status = 'Cancelled';
+        await order.save();
+
+        res.json({ message: 'Order cancelled successfully', order });
+    } catch (error) {
+        console.error('Cancel order error:', error);
+        res.status(500).json({ message: 'Server error while cancelling order' });
+    }
+});
 export default router;

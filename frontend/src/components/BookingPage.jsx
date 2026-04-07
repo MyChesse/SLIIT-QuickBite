@@ -431,17 +431,23 @@ const BookingPage = ({ cart, clearCart }) => {
                     </label>
 
                     <input
-                        type="text"
-                        value={studentName}
-                        onChange={(e)=>
-                            setStudentName(
-                                e.target.value
-                            )
-                        }
-                        style={styles.input}
-                        required
-                    />
+    type="text"
+    value={studentName}
+    onChange={(e) => {
 
+        const formattedValue =
+            e.target.value
+            .toLowerCase()
+            .replace(/\b\w/g, char =>
+                char.toUpperCase()
+            );
+
+        setStudentName(formattedValue);
+
+    }}
+    style={styles.input}
+    required
+/>
                 </div>
 
 
