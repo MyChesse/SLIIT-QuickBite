@@ -11,6 +11,10 @@ import Login from './pages/Login';
 import UserDashboard from './pages/UserDashboard';
 import Profile from './pages/Profile';
 import AdminDashboard from './pages/AdminDashboard';
+import DailyPromotions from './pages/DailyPromotions';
+import AddNewCanteenPromotion from './pages/AddNewCanteenPromotion';
+import AddBasementCanteenPromotion from './pages/AddBasementCanteenPromotion';
+import AddAnohanaCanteenPromotion from './pages/AddAnohanaCanteenPromotion';
 
 const App = () => {
   return (
@@ -47,6 +51,38 @@ const App = () => {
             element={
               <AdminProtectedRoute>
                 <AdminDashboard />
+              </AdminProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/promotions"
+            element={
+              <AdminProtectedRoute>
+                <DailyPromotions />
+              </AdminProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/promotions/new-canteen"
+            element={
+              <AdminProtectedRoute>
+                <AddNewCanteenPromotion />
+              </AdminProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/promotions/basement-canteen"
+            element={
+              <AdminProtectedRoute>
+                <AddBasementCanteenPromotion />
+              </AdminProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/promotions/anohana-canteen"
+            element={
+              <AdminProtectedRoute>
+                <AddAnohanaCanteenPromotion />
               </AdminProtectedRoute>
             }
           />
