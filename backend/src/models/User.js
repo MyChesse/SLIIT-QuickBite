@@ -7,6 +7,12 @@ const userSchema = new mongoose.Schema({
     required: [true, 'Name is required'],
     trim: true
   },
+  userId: {
+    type: String,
+    required: [true, 'User ID is required'],
+    unique: true,
+    trim: true
+  },
   email: {
     type: String,
     required: [true, 'Email is required'],
@@ -24,6 +30,11 @@ const userSchema = new mongoose.Schema({
     type: String,
     enum: ['student', 'staff', 'admin'],
     default: 'student'
+  },
+  status: {
+    type: String,
+    enum: ['active', 'suspended'],
+    default: 'active'
   },
   createdAt: {
     type: Date,

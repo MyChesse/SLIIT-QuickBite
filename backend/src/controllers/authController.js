@@ -13,10 +13,10 @@ const generateToken = (id) => {
 // @access  Public
 export const register = async (req, res) => {
   try {
-    const { name, email, password, confirmPassword, userType } = req.body;
+    const { name, id, email, password, confirmPassword, userType, terms } = req.body;
 
     // Validation
-    if (!name || !email || !password || !confirmPassword || !userType) {
+    if (!name || !id || !email || !password || !confirmPassword || !userType || !terms) {
       return res.status(400).json({ message: 'All fields are required' });
     }
 
@@ -34,7 +34,7 @@ export const register = async (req, res) => {
     }
 
     // Check if user already exists
-    const existingUser = await User.findOne({ email });
+    const existingUser = await User.findOne({ $or: [{ email }, { userId: id }] });
     if (existingUser) {
       return res.status(400).json({ message: 'User already exists' });
     }
@@ -42,6 +42,7 @@ export const register = async (req, res) => {
     // Create user
     const user = await User.create({
       name,
+      userId: id,
       email,
       password,
       role: userType
@@ -89,9 +90,17 @@ export const login = async (req, res) => {
       return res.status(401).json({ message: 'Invalid email or password' });
     }
 
-    // Update last login
-    user.lastLogin = new Date();
-    await user.save();
+    // Update last login without triggering full document validation.
+    const loginUpdates = {
+      lastLogin: new Date()
+    };
+
+    if (!user.userId) {
+      loginUpdates.userId = `ADM-${String(user._id).slice(-8).toUpperCase()}`;
+      user.userId = loginUpdates.userId;
+    }
+
+    await User.updateOne({ _id: user._id }, { $set: loginUpdates });
 
     // Generate token
     const token = generateToken(user._id);
@@ -145,6 +154,49 @@ export const updateProfile = async (req, res) => {
       email: user.email,
       role: user.role
     });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+// @desc    Change password
+// @route   PUT /api/auth/change-password
+// @access  Private
+export const changePassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword, confirmPassword } = req.body;
+
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      return res.status(400).json({ message: 'All password fields are required' });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({ message: 'New password must be at least 6 characters long' });
+    }
+
+    if (newPassword !== confirmPassword) {
+      return res.status(400).json({ message: 'New passwords do not match' });
+    }
+
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const isCurrentPasswordValid = await user.comparePassword(currentPassword);
+    if (!isCurrentPasswordValid) {
+      return res.status(400).json({ message: 'Current password is incorrect' });
+    }
+
+    if (currentPassword === newPassword) {
+      return res.status(400).json({ message: 'New password must be different from current password' });
+    }
+
+    user.password = newPassword;
+    await user.save();
+
+    res.json({ message: 'Password updated successfully' });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server error' });

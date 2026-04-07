@@ -1,10 +1,14 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router';
 import toast from 'react-hot-toast';
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
+
 const AdminDashboard = () => {
-  const { user } = useAuth();
+  const { user, token } = useAuth();
+  const navigate = useNavigate();
   const [summary, setSummary] = useState({});
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -14,6 +18,9 @@ const AdminDashboard = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [pagination, setPagination] = useState({});
   const [showInviteModal, setShowInviteModal] = useState(false);
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [profileLoading, setProfileLoading] = useState(false);
   const [inviteForm, setInviteForm] = useState({
     name: '',
     email: '',
@@ -21,13 +28,31 @@ const AdminDashboard = () => {
     role: 'student'
   });
   const [inviting, setInviting] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editForm, setEditForm] = useState({
+    name: '',
+    email: '',
+    role: 'student',
+    status: 'active'
+  });
+  const [editingUserId, setEditingUserId] = useState(null);
+  const [editing, setEditing] = useState(false);
+  const [openMenuId, setOpenMenuId] = useState(null);
+  const [actionLoading, setActionLoading] = useState(false);
+
+  const authHeaders = token
+    ? { Authorization: `Bearer ${token}` }
+    : {};
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const [summaryRes, usersRes] = await Promise.all([
-          axios.get('http://localhost:5001/api/admin/dashboard-summary'),
-          axios.get('http://localhost:5001/api/admin/users', {
+          axios.get(`${API_BASE_URL}/api/admin/dashboard-summary`, {
+            headers: authHeaders
+          }),
+          axios.get(`${API_BASE_URL}/api/admin/users`, {
+            headers: authHeaders,
             params: {
               search: searchTerm,
               role: roleFilter,
@@ -43,14 +68,18 @@ const AdminDashboard = () => {
         setPagination(usersRes.data.pagination);
       } catch (error) {
         console.error('Failed to fetch admin data:', error);
-        toast.error('Failed to load data');
+        toast.error(error.response?.data?.message || 'Failed to load data');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchData();
-  }, [searchTerm, roleFilter, statusFilter, currentPage]);
+    if (token) {
+      fetchData();
+    } else {
+      setLoading(false);
+    }
+  }, [searchTerm, roleFilter, statusFilter, currentPage, token]);
 
   const summaryCards = [
     {
@@ -150,12 +179,15 @@ const AdminDashboard = () => {
     e.preventDefault();
     setInviting(true);
     try {
-      await axios.post('http://localhost:5001/api/admin/users', inviteForm);
+      await axios.post(`${API_BASE_URL}/api/admin/users`, inviteForm, {
+        headers: authHeaders
+      });
       toast.success('User invited successfully');
       setShowInviteModal(false);
       setInviteForm({ name: '', email: '', password: '', role: 'student' });
       // Refresh users
-      const usersRes = await axios.get('http://localhost:5001/api/admin/users', {
+      const usersRes = await axios.get(`${API_BASE_URL}/api/admin/users`, {
+        headers: authHeaders,
         params: { search: searchTerm, role: roleFilter, status: statusFilter, page: currentPage, limit: 10 }
       });
       setUsers(usersRes.data.users);
@@ -168,18 +200,112 @@ const AdminDashboard = () => {
   };
 
   const handleViewProfile = async (userId) => {
+    setProfileLoading(true);
     try {
-      const res = await axios.get(`http://localhost:5001/api/admin/users/${userId}`);
-      // For now, just show in console. You can implement modal or navigation
-      console.log('User details:', res.data);
-      toast.success('User details loaded');
-    } catch {
-      toast.error('Failed to load user details');
+      const res = await axios.get(`${API_BASE_URL}/api/admin/users/${userId}`, {
+        headers: authHeaders
+      });
+      setSelectedUser(res.data);
+      setShowProfileModal(true);
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to load user details');
+    } finally {
+      setProfileLoading(false);
     }
   };
 
   const handlePageChange = (page) => {
     setCurrentPage(page);
+  };
+
+  const handleEditUser = (user) => {
+    setEditingUserId(user._id);
+    setEditForm({
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      status: user.status
+    });
+    setShowEditModal(true);
+    setOpenMenuId(null);
+  };
+
+  const handleSaveEdit = async (e) => {
+    e.preventDefault();
+    setEditing(true);
+    try {
+      await axios.put(`${API_BASE_URL}/api/admin/users/${editingUserId}`, editForm, {
+        headers: authHeaders
+      });
+      toast.success('User updated successfully');
+      setShowEditModal(false);
+      // Refresh users
+      const usersRes = await axios.get(`${API_BASE_URL}/api/admin/users`, {
+        headers: authHeaders,
+        params: { search: searchTerm, role: roleFilter, status: statusFilter, page: currentPage, limit: 10 }
+      });
+      setUsers(usersRes.data.users);
+      setPagination(usersRes.data.pagination);
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to update user');
+    } finally {
+      setEditing(false);
+    }
+  };
+
+  const handleSuspendUser = async (userId, currentStatus) => {
+    if (!window.confirm(`Are you sure you want to ${currentStatus === 'active' ? 'suspend' : 'activate'} this user?`)) {
+      return;
+    }
+    
+    setActionLoading(true);
+    try {
+      const newStatus = currentStatus === 'active' ? 'suspended' : 'active';
+      await axios.put(
+        `${API_BASE_URL}/api/admin/users/${userId}`,
+        { status: newStatus },
+        { headers: authHeaders }
+      );
+      toast.success(`User ${newStatus} successfully`);
+      // Refresh users
+      const usersRes = await axios.get(`${API_BASE_URL}/api/admin/users`, {
+        headers: authHeaders,
+        params: { search: searchTerm, role: roleFilter, status: statusFilter, page: currentPage, limit: 10 }
+      });
+      setUsers(usersRes.data.users);
+      setPagination(usersRes.data.pagination);
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to update user status');
+    } finally {
+      setActionLoading(false);
+      setOpenMenuId(null);
+    }
+  };
+
+  const handleDeleteUser = async (userId) => {
+    if (!window.confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
+      return;
+    }
+    
+    setActionLoading(true);
+    try {
+      await axios.delete(`${API_BASE_URL}/api/admin/users/${userId}`, {
+        headers: authHeaders
+      });
+      toast.success('User deleted successfully');
+      // Refresh users
+      const usersRes = await axios.get(`${API_BASE_URL}/api/admin/users`, {
+        headers: authHeaders,
+        params: { search: searchTerm, role: roleFilter, status: statusFilter, page: currentPage, limit: 10 }
+      });
+      setUsers(usersRes.data.users);
+      setPagination(usersRes.data.pagination);
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to delete user');
+    } finally {
+      setActionLoading(false);
+      setOpenMenuId(null);
+    }
   };
 
   if (loading) {
@@ -218,6 +344,14 @@ const AdminDashboard = () => {
             <button className="w-full flex items-center gap-3 rounded-xl bg-blue-50 text-blue-700 px-4 py-3 text-sm font-semibold">
               <span className="text-base">👥</span>
               <span>User Management</span>
+            </button>
+
+            <button 
+              onClick={() => navigate('/admin/promotions')}
+              className="w-full flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-slate-600 hover:bg-slate-50 transition"
+            >
+              <span className="text-base">🍽️</span>
+              <span>Promotion Management</span>
             </button>
 
             <button className="w-full flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-slate-600 hover:bg-slate-50 transition">
@@ -463,10 +597,38 @@ const AdminDashboard = () => {
                               View Profile
                             </button>
                             <div className="relative">
-                              <button className="text-slate-400 hover:text-slate-600 text-lg">
+                              <button 
+                                onClick={() => setOpenMenuId(openMenuId === item._id ? null : item._id)}
+                                className="text-slate-400 hover:text-slate-600 text-lg"
+                              >
                                 ⋮
                               </button>
-                              {/* Dropdown menu can be added here */}
+                              
+                              {/* Dropdown menu */}
+                              {openMenuId === item._id && (
+                                <div className="absolute right-0 mt-2 w-40 bg-white border border-slate-200 rounded-lg shadow-lg z-10">
+                                  <button 
+                                    onClick={() => handleEditUser(item)}
+                                    className="w-full text-left px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 border-b border-slate-200 font-medium"
+                                  >
+                                    ✏️ Edit User
+                                  </button>
+                                  <button 
+                                    onClick={() => handleSuspendUser(item._id, item.status)}
+                                    disabled={actionLoading}
+                                    className="w-full text-left px-4 py-2.5 text-sm text-orange-600 hover:bg-slate-50 border-b border-slate-200 font-medium disabled:opacity-50"
+                                  >
+                                    {item.status === 'active' ? '🔒 Suspend User' : '🔓 Activate User'}
+                                  </button>
+                                  <button 
+                                    onClick={() => handleDeleteUser(item._id)}
+                                    disabled={actionLoading}
+                                    className="w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 font-medium disabled:opacity-50"
+                                  >
+                                    🗑️ Delete User
+                                  </button>
+                                </div>
+                              )}
                             </div>
                           </div>
                         </td>
@@ -593,6 +755,152 @@ const AdminDashboard = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Profile View Modal */}
+      {showProfileModal && selectedUser && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-lg mx-4">
+            <div className="flex items-start justify-between gap-4 mb-5">
+              <div>
+                <h2 className="text-xl font-bold text-slate-800">User Profile</h2>
+                <p className="text-sm text-slate-500">Detailed account information</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowProfileModal(false)}
+                className="text-slate-400 hover:text-slate-600 text-xl"
+                aria-label="Close profile modal"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="bg-slate-50 rounded-xl p-3">
+                  <p className="text-xs uppercase tracking-wide text-slate-500 mb-1">Full Name</p>
+                  <p className="text-sm font-semibold text-slate-800">{selectedUser.name || 'N/A'}</p>
+                </div>
+                <div className="bg-slate-50 rounded-xl p-3">
+                  <p className="text-xs uppercase tracking-wide text-slate-500 mb-1">Email</p>
+                  <p className="text-sm font-semibold text-slate-800 break-all">{selectedUser.email || 'N/A'}</p>
+                </div>
+                <div className="bg-slate-50 rounded-xl p-3">
+                  <p className="text-xs uppercase tracking-wide text-slate-500 mb-1">Role</p>
+                  <p className="text-sm font-semibold text-slate-800 capitalize">{selectedUser.role || 'N/A'}</p>
+                </div>
+                <div className="bg-slate-50 rounded-xl p-3">
+                  <p className="text-xs uppercase tracking-wide text-slate-500 mb-1">Status</p>
+                  <p className="text-sm font-semibold text-slate-800 capitalize">{selectedUser.status || 'N/A'}</p>
+                </div>
+                <div className="bg-slate-50 rounded-xl p-3">
+                  <p className="text-xs uppercase tracking-wide text-slate-500 mb-1">User ID</p>
+                  <p className="text-sm font-semibold text-slate-800">{selectedUser.userId || selectedUser._id || 'N/A'}</p>
+                </div>
+                <div className="bg-slate-50 rounded-xl p-3">
+                  <p className="text-xs uppercase tracking-wide text-slate-500 mb-1">Created At</p>
+                  <p className="text-sm font-semibold text-slate-800">
+                    {selectedUser.createdAt ? new Date(selectedUser.createdAt).toLocaleString() : 'N/A'}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex justify-end pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowProfileModal(false)}
+                  className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit User Modal */}
+      {showEditModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-md mx-4">
+            <h2 className="text-xl font-bold text-slate-800 mb-4">Edit User</h2>
+            <form onSubmit={handleSaveEdit}>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Name</label>
+                  <input
+                    type="text"
+                    required
+                    value={editForm.name}
+                    onChange={(e) => setEditForm({...editForm, name: e.target.value})}
+                    className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-blue-500"
+                    placeholder="Enter full name"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Email</label>
+                  <input
+                    type="email"
+                    required
+                    value={editForm.email}
+                    onChange={(e) => setEditForm({...editForm, email: e.target.value})}
+                    className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-blue-500"
+                    placeholder="Enter email address"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Role</label>
+                  <select
+                    value={editForm.role}
+                    onChange={(e) => setEditForm({...editForm, role: e.target.value})}
+                    className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-blue-500"
+                  >
+                    <option value="student">Student</option>
+                    <option value="staff">Staff</option>
+                    <option value="admin">Admin</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Status</label>
+                  <select
+                    value={editForm.status}
+                    onChange={(e) => setEditForm({...editForm, status: e.target.value})}
+                    className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-blue-500"
+                  >
+                    <option value="active">Active</option>
+                    <option value="suspended">Suspended</option>
+                  </select>
+                </div>
+              </div>
+              <div className="flex gap-3 mt-6">
+                <button
+                  type="button"
+                  onClick={() => setShowEditModal(false)}
+                  className="flex-1 px-4 py-2 border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={editing}
+                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                >
+                  {editing ? 'Saving...' : 'Save Changes'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {profileLoading && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-[60]">
+          <div className="bg-white px-6 py-4 rounded-xl shadow-lg flex items-center gap-3">
+            <div className="w-5 h-5 rounded-full border-2 border-blue-600 border-t-transparent animate-spin" />
+            <p className="text-sm font-medium text-slate-700">Loading profile...</p>
           </div>
         </div>
       )}

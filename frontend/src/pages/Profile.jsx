@@ -3,12 +3,18 @@ import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 
 const Profile = () => {
-  const { user, updateProfile } = useAuth();
+  const { user, updateProfile, changePassword } = useAuth();
   const [editing, setEditing] = useState(false);
   const [formData, setFormData] = useState({
     name: user?.name || ''
   });
   const [loading, setLoading] = useState(false);
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
+  const [passwordLoading, setPasswordLoading] = useState(false);
 
   const handleChange = (e) => {
     setFormData({
@@ -31,6 +37,48 @@ const Profile = () => {
     }
 
     setLoading(false);
+  };
+
+  const handlePasswordChange = (e) => {
+    setPasswordData({
+      ...passwordData,
+      [e.target.name]: e.target.value
+    });
+  };
+
+  const handleChangePassword = async (e) => {
+    e.preventDefault();
+
+    if (!passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword) {
+      toast.error('All password fields are required');
+      return;
+    }
+
+    if (passwordData.newPassword.length < 6) {
+      toast.error('New password must be at least 6 characters long');
+      return;
+    }
+
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      toast.error('New passwords do not match');
+      return;
+    }
+
+    setPasswordLoading(true);
+    const result = await changePassword(passwordData);
+
+    if (result.success) {
+      toast.success(result.message || 'Password changed successfully');
+      setPasswordData({
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: ''
+      });
+    } else {
+      toast.error(result.message);
+    }
+
+    setPasswordLoading(false);
   };
 
   return (
@@ -128,6 +176,54 @@ const Profile = () => {
                   </button>
                 </form>
               )}
+
+              <div className="mt-8 border-t border-slate-200 pt-6">
+                <h3 className="text-lg font-semibold text-slate-800 mb-4">Change Password</h3>
+                <form onSubmit={handleChangePassword} className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-600 mb-1">Current Password</label>
+                    <input
+                      type="password"
+                      name="currentPassword"
+                      value={passwordData.currentPassword}
+                      onChange={handlePasswordChange}
+                      required
+                      className="w-full rounded-lg border border-slate-300 bg-white p-3 text-slate-900 outline-none focus:border-[#FF7A00] focus:ring-2 focus:ring-[#FF7A00]/40"
+                    />
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-slate-600 mb-1">New Password</label>
+                      <input
+                        type="password"
+                        name="newPassword"
+                        value={passwordData.newPassword}
+                        onChange={handlePasswordChange}
+                        required
+                        className="w-full rounded-lg border border-slate-300 bg-white p-3 text-slate-900 outline-none focus:border-[#FF7A00] focus:ring-2 focus:ring-[#FF7A00]/40"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-600 mb-1">Confirm New Password</label>
+                      <input
+                        type="password"
+                        name="confirmPassword"
+                        value={passwordData.confirmPassword}
+                        onChange={handlePasswordChange}
+                        required
+                        className="w-full rounded-lg border border-slate-300 bg-white p-3 text-slate-900 outline-none focus:border-[#FF7A00] focus:ring-2 focus:ring-[#FF7A00]/40"
+                      />
+                    </div>
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={passwordLoading}
+                    className="w-full rounded-lg bg-[#0056D2] px-4 py-3 text-sm font-semibold text-white hover:bg-blue-700 transition disabled:cursor-not-allowed disabled:opacity-70"
+                  >
+                    {passwordLoading ? 'Updating password...' : 'Update Password'}
+                  </button>
+                </form>
+              </div>
             </div>
           </div>
         </main>

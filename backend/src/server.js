@@ -26,9 +26,27 @@ app.get('/', (req, res) => {
 
 const PORT = process.env.PORT || 5001;
 
-connectDB().then(() => {
-  app.listen(PORT, () => {
-    console.log("Server is running on Port: ", PORT);
+const MAX_PORT_RETRIES = 10;
+
+const startServer = (port, retriesLeft = MAX_PORT_RETRIES) => {
+  const server = app.listen(port, () => {
+    console.log("Server is running on Port: ", port);
   });
+
+  server.on('error', (err) => {
+    if (err.code === 'EADDRINUSE' && retriesLeft > 0) {
+      const nextPort = Number(port) + 1;
+      console.warn(`Port ${port} is in use. Retrying on ${nextPort}...`);
+      startServer(nextPort, retriesLeft - 1);
+      return;
+    }
+
+    console.error('Failed to start server:', err.message);
+    process.exit(1);
+  });
+};
+
+connectDB().then(() => {
+  startServer(PORT);
 });
 
