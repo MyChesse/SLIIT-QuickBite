@@ -36,12 +36,12 @@ const SDCanteenSelector = () => {
                 
             </div>
 
-            {/* Label */}
+          
             <span className="text-sm font-semibold text-gray-700 whitespace-nowrap">
                 Current Canteen
             </span>
 
-            {/* Dropdown */}
+
             <select
                 value={selectedCanteenId}
                 onChange={(e) => selectCanteen(e.target.value)}

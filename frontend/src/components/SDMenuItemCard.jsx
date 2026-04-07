@@ -18,11 +18,11 @@ const SDMenuItemCard = ({ item }) => {
 
     return (
         <div className="group bg-white rounded-3xl shadow-md overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-gray-100">
-            {/* Image Section */}
+            {/* Image  */}
             <div className="relative h-52 overflow-hidden bg-gray-100">
                 {item.imageUrl ? (
                     <img 
-                        src={`http://localhost:5001${item.imageUrl}`}   // ← Important: Add backend URL
+                        src={`http://localhost:5001${item.imageUrl}`}   // ←  backend URL
                         alt={item.name}
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
                     />
