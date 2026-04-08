@@ -16,6 +16,8 @@ import AddNewCanteenPromotion from './pages/AddNewCanteenPromotion';
 import AddBasementCanteenPromotion from './pages/AddBasementCanteenPromotion';
 import AddAnohanaCanteenPromotion from './pages/AddAnohanaCanteenPromotion';
 import CanteenSelection from './pages/CanteenSelection';
+import SDInventoryPage from './pages/SDInventoryPage';
+import SDMenuPage from './pages/SDMenuPage';
 
 const AppContent = () => {
   const location = useLocation();
@@ -44,6 +46,26 @@ const AppContent = () => {
           element={
             <ProtectedRoute>
               <Profile />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Staff Routes */}
+        <Route
+          path="/inventory"
+          element={
+            <ProtectedRoute>
+              <SDInventoryPage />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Student Routes */}
+        <Route
+          path="/menu"
+          element={
+            <ProtectedRoute>
+              <SDMenuPage />
             </ProtectedRoute>
           }
         />

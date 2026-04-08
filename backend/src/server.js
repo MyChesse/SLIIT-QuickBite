@@ -2,6 +2,11 @@ import express from 'express';
 import cors from 'cors';
 import { connectDB } from './config/db.js';
 import dotenv from 'dotenv';
+<<<<<<< Updated upstream
+=======
+import SDinventoryRoutes from './routes/SDinventoryRoutes.js';
+import SDcanteenRoutes from './routes/SDcanteenRoutes.js';
+>>>>>>> Stashed changes
 import authRoutes from './routes/auth.js';
 import adminRoutes from './routes/admin.js';
 import promotionRoutes from './routes/promotionRoutes.js';
@@ -10,14 +15,35 @@ dotenv.config();
 
 const app = express();
 
+<<<<<<< Updated upstream
 // Middleware
 app.use(cors()); // Enable CORS
 app.use(express.json()); // Parse JSON bodies
 
 // Routes
+=======
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "x-canteen-id"]
+  })
+);
+
+app.options('*', cors());
+
+// Body parser middleware
+app.use(express.json());
+
+// Routes 
+app.use("/api/inventory", SDinventoryRoutes);
+app.use("/api/canteens", SDcanteenRoutes);
+>>>>>>> Stashed changes
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/promotions', promotionRoutes);
+app.use('/uploads', express.static('uploads'));
 
 // Basic route for testing
 app.get('/', (req, res) => {
@@ -48,5 +74,9 @@ const startServer = (port, retriesLeft = MAX_PORT_RETRIES) => {
 
 connectDB().then(() => {
   startServer(PORT);
+<<<<<<< Updated upstream
 });
 
+=======
+});
+>>>>>>> Stashed changes
