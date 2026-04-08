@@ -4,6 +4,7 @@ import { SDCanteenContext } from '../context/SDCanteenContext';
 import SDCanteenSelector from '../components/SDCanteenSelector';
 import SDMenuItemCard from '../components/SDMenuItemCard';
 import ramen from '../assets/ramen.jpg';
+import api from '../services/api';
 
 const SDMenuPage = () => {
     const { selectedCanteenId } = useContext(SDCanteenContext);
@@ -18,7 +19,7 @@ const SDMenuPage = () => {
         if (!selectedCanteenId) return;
         setLoading(true);
         try {
-            const res = await axios.get('http://localhost:5001/api/inventory', {
+            const res = await api.get('http://localhost:5001/api/inventory', {
                 headers: { 'x-canteen-id': selectedCanteenId }
             });
             setItems(res.data.data);

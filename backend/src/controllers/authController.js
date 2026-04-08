@@ -13,9 +13,17 @@ const generateToken = (id) => {
 // @access  Public
 export const register = async (req, res) => {
   try {
-    const { name, id, email, password, confirmPassword, userType, terms } = req.body;
+    const { 
+      name, 
+      id, 
+      email, 
+      password, 
+      confirmPassword, 
+      userType, 
+      terms,
+      assignedCanteens   
+    } = req.body;
 
-    // Validation
     if (!name || !id || !email || !password || !confirmPassword || !userType || !terms) {
       return res.status(400).json({ message: 'All fields are required' });
     }
@@ -28,41 +36,50 @@ export const register = async (req, res) => {
       return res.status(400).json({ message: 'Password must be at least 6 characters long' });
     }
 
-    // Check if user type is valid and not admin
     if (!['student', 'staff'].includes(userType)) {
       return res.status(400).json({ message: 'Invalid user type' });
     }
 
-    // Check if user already exists
+    if (userType === 'staff') {
+      if (!assignedCanteens || !Array.isArray(assignedCanteens) || assignedCanteens.length === 0) {
+        return res.status(400).json({ 
+          message: 'Staff members must be assigned to at least one canteen' 
+        });
+      }
+    }
+
     const existingUser = await User.findOne({ $or: [{ email }, { userId: id }] });
     if (existingUser) {
       return res.status(400).json({ message: 'User already exists' });
     }
 
-    // Create user
     const user = await User.create({
       name,
       userId: id,
       email,
       password,
-      role: userType
+      role: userType,
+      assignedCanteens: userType === 'staff' ? assignedCanteens : [],
+      status: 'active'
     });
 
-    // Generate token
     const token = generateToken(user._id);
 
     res.status(201).json({
+      success: true,
       token,
       user: {
         id: user._id,
         name: user.name,
         email: user.email,
-        role: user.role
+        role: user.role,
+        assignedCanteens: user.assignedCanteens
       }
     });
+
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Server error' });
+    console.error("Register Error:", error);
+    res.status(500).json({ message: 'Server error during registration' });
   }
 };
 
@@ -73,45 +90,34 @@ export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Validation
     if (!email || !password) {
       return res.status(400).json({ message: 'Email and password are required' });
     }
 
-    // Check if user exists
     const user = await User.findOne({ email });
     if (!user) {
       return res.status(401).json({ message: 'Invalid email or password' });
     }
 
-    // Check password
     const isPasswordValid = await user.comparePassword(password);
     if (!isPasswordValid) {
       return res.status(401).json({ message: 'Invalid email or password' });
     }
 
-    // Update last login without triggering full document validation.
-    const loginUpdates = {
-      lastLogin: new Date()
-    };
+    // Update last login
+    await User.updateOne({ _id: user._id }, { lastLogin: new Date() });
 
-    if (!user.userId) {
-      loginUpdates.userId = `ADM-${String(user._id).slice(-8).toUpperCase()}`;
-      user.userId = loginUpdates.userId;
-    }
-
-    await User.updateOne({ _id: user._id }, { $set: loginUpdates });
-
-    // Generate token
     const token = generateToken(user._id);
 
     res.json({
+      success: true,
       token,
       user: {
         id: user._id,
         name: user.name,
         email: user.email,
-        role: user.role
+        role: user.role,
+        assignedCanteens: user.assignedCanteens || []   // ← Important for staff
       }
     });
   } catch (error) {
@@ -139,12 +145,9 @@ export const getMe = async (req, res) => {
 export const updateProfile = async (req, res) => {
   try {
     const { name } = req.body;
-
     const user = await User.findById(req.user.id);
 
-    if (name) {
-      user.name = name;
-    }
+    if (name) user.name = name;
 
     await user.save();
 
@@ -152,7 +155,8 @@ export const updateProfile = async (req, res) => {
       id: user._id,
       name: user.name,
       email: user.email,
-      role: user.role
+      role: user.role,
+      assignedCanteens: user.assignedCanteens
     });
   } catch (error) {
     console.error(error);
@@ -180,9 +184,7 @@ export const changePassword = async (req, res) => {
     }
 
     const user = await User.findById(req.user.id);
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
+    if (!user) return res.status(404).json({ message: 'User not found' });
 
     const isCurrentPasswordValid = await user.comparePassword(currentPassword);
     if (!isCurrentPasswordValid) {

@@ -1,4 +1,5 @@
 import Canteen from "../models/SDCanteen.js";
+import User from "../models/User.js";
 
 // Middleware to extract canteenId from header and validate
 export const selectCanteen = async (req, res, next) => {
@@ -20,6 +21,26 @@ export const selectCanteen = async (req, res, next) => {
         });
     }
 
-    req.canteenId = canteenId;   // Attach to request object
+    if (req.user.role === 'admin') {
+      req.canteenId = canteenId;
+      return next();
+    }
+
+    // If user is staff → check assigned canteens
+    if (req.user && req.user.role === 'staff') {
+      const isAssigned = req.user.assignedCanteens.some(id => 
+        id.toString() === canteenId
+      );
+
+      if (!isAssigned) {
+        return res.status(403).json({ 
+          message: 'You are not authorized to manage this canteen' 
+        });
+      }
+    }
+
+    req.canteenId = canteenId;
     next();
+    
 };
+

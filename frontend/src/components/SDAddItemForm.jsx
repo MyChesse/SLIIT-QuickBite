@@ -2,6 +2,8 @@ import { useState, useContext } from 'react';
 import axios from 'axios';
 import { SDCanteenContext } from '../context/SDCanteenContext';
 import toast from 'react-hot-toast';
+import api from '../services/api';
+
 
 const SDAddItemForm = () => {
     const { selectedCanteenId } = useContext(SDCanteenContext);
@@ -37,7 +39,7 @@ const SDAddItemForm = () => {
         if (formData.imageFile) data.append('image', formData.imageFile);
 
         try {
-            await axios.post('http://localhost:5001/api/inventory', data, {
+            await api.post('http://localhost:5001/api/inventory', data, {
                 headers: {
                     'x-canteen-id': selectedCanteenId,
                     'Content-Type': 'multipart/form-data'

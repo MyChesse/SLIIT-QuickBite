@@ -1,8 +1,8 @@
 import { Navigate } from 'react-router';
 import { useAuth } from '../context/AuthContext';
 
-const ProtectedRoute = ({ children }) => {
-    const { isAuthenticated, loading } = useAuth();
+const StaffProtectedRoute = ({ children }) => {
+    const { isAuthenticated, isStaff, loading } = useAuth();
 
     if (loading) {
         return (
@@ -16,7 +16,12 @@ const ProtectedRoute = ({ children }) => {
         return <Navigate to="/login" replace />;
     }
 
+    if (!isStaff) {
+        // Students should not access staff pages
+        return <Navigate to="/menu" replace />;
+    }
+
     return children;
 };
 
-export default ProtectedRoute;
+export default StaffProtectedRoute;

@@ -108,8 +108,10 @@ const Login = () => {
       }
       if (result.user.role === 'admin') {
         navigate('/admin/dashboard');
+      } else if (result.user.role === 'staff') {
+        navigate('/inventory');
       } else {
-        navigate('/dashboard');
+      navigate('/menu');
       }
     } else {
       toast.error(result.message);

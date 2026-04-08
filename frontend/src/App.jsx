@@ -5,6 +5,7 @@ import { Toaster } from 'react-hot-toast';
 import Navbar from './components/Navbar';
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminProtectedRoute from './components/AdminProtectedRoute';
+import StaffProtectedRoute from './components/StaffProtectedRoute';
 
 
 // Pages
@@ -26,11 +27,17 @@ const App = () => {
     <div className="min-h-screen bg-gray-50">
       <Routes>
         {/* Staff Routes */}
-        <Route path="/inventory" element={<SDInventoryPage />} />
-
+        <Route 
+        path="/inventory" 
+        element={
+            <StaffProtectedRoute>
+                <SDInventoryPage />
+            </StaffProtectedRoute>
+        } 
+    />
         {/* Student Routes */}
         <Route path="/menu" element={<SDMenuPage />} />
-                {/* Default page = Menu */}
+                
          <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />

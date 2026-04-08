@@ -42,7 +42,16 @@ const userSchema = new mongoose.Schema({
   },
   lastLogin: {
     type: Date
-  }
+  },
+  assignedCanteens: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Canteen'
+  }],
+
+  status: { type: String, enum: ['active', 'suspended'], default: 'active' },
+  createdAt: { type: Date, default: Date.now },
+  lastLogin: { type: Date }
+
 });
 
 // Hash password before saving

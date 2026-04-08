@@ -2,6 +2,7 @@ import { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
 import { SDCanteenContext } from '../context/SDCanteenContext';
 import toast from 'react-hot-toast';
+import api from '../services/api';
 
 const SDInventoryTable = () => {
     const { selectedCanteenId } = useContext(SDCanteenContext);
@@ -14,7 +15,7 @@ const SDInventoryTable = () => {
         
         setLoading(true);
         try {
-            const res = await axios.get('http://localhost:5001/api/inventory', {
+            const res = await api.get('http://localhost:5001/api/inventory', {
                 headers: { 'x-canteen-id': selectedCanteenId }
             });
             setItems(res.data.data);
@@ -37,7 +38,7 @@ const SDInventoryTable = () => {
     const updateStock = async (itemId, change) => {
         setUpdatingId(itemId);
         try {
-            await axios.put(`http://localhost:5001/api/inventory/${itemId}/stock`, 
+            await api.put(`http://localhost:5001/api/inventory/${itemId}/stock`, 
                 { quantity: change },
                 { headers: { 'x-canteen-id': selectedCanteenId } }
             );
@@ -53,7 +54,7 @@ const SDInventoryTable = () => {
     const toggleAvailability = async (item) => {
         setUpdatingId(item._id);
         try {
-            await axios.put(`http://localhost:5001/api/inventory/${item._id}/availability`,
+            await api.put(`http://localhost:5001/api/inventory/${item._id}/availability`,
                 {},
                 { headers: { 'x-canteen-id': selectedCanteenId } }
             );
@@ -71,7 +72,7 @@ const SDInventoryTable = () => {
         
         setUpdatingId(item._id);
         try {
-            await axios.delete(`http://localhost:5001/api/inventory/${item._id}`,
+            await api.delete(`http://localhost:5001/api/inventory/${item._id}`,
                 { headers: { 'x-canteen-id': selectedCanteenId } }
             );
             toast.success(`${item.name} deleted`);

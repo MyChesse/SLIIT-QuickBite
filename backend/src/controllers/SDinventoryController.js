@@ -88,11 +88,25 @@ export async function addFoodItem(req, res) {
 }
 
 // Get all food items
+// Get all food items - PUBLIC (no login required)
 export async function getFoodItems(req, res) {
     try {
-        const items = await MenuItem.find({ canteenId: req.canteenId })
+        let query = {};
+
+        // If canteenId is passed in header (from student selector)
+        if (req.headers['x-canteen-id']) {
+            query.canteenId = req.headers['x-canteen-id'];
+        }
+        // If canteenId is passed as query param (backup)
+        else if (req.query.canteenId) {
+            query.canteenId = req.query.canteenId;
+        }
+        // Otherwise show all items (for future "All Canteens" view)
+        // You can remove this if you always want to force canteen selection
+
+        const items = await MenuItem.find(query)
             .sort({ category: 1, name: 1 });
-        
+
         res.status(200).json({
             success: true,
             count: items.length,
