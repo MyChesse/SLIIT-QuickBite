@@ -1,65 +1,19 @@
 @import "tailwindcss";
 
-@layer base {
-  * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-  }
-
-  :root {
-    font-family: 'Inter', system-ui, sans-serif;
-    --color-primary: #0056D2;
-    --color-secondary: #FF7A00;
-    --color-tertiary: #A93802;
-    --color-neutral: #475569;
-  }
-
-  body {
-    @apply min-h-screen bg-slate-50 text-slate-900;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-  }
-
-  #root {
-    @apply min-h-screen;
-  }
+:root {
+	--brand-primary: #0056d2;
+	--brand-secondary: #ff7a00;
+	--brand-tertiary: #a93802;
+	--brand-neutral: #475569;
 }
 
-@layer components {
-  .material-symbols-outlined {
-    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-  }
-  
-  .bg-primary {
-    background-color: var(--color-primary);
-  }
-  
-  .text-primary {
-    color: var(--color-primary);
-  }
-  
-  .bg-secondary {
-    background-color: var(--color-secondary);
-  }
-  
-  .text-secondary {
-    color: var(--color-secondary);
-  }
-  
-  .bg-tertiary {
-    background-color: var(--color-tertiary);
-  }
-  
-  .text-tertiary {
-    color: var(--color-tertiary);
-  }
-  
-  .bg-neutral {
-    background-color: var(--color-neutral);
-  }
-  
-  .text-neutral {
-    color: var(--color-neutral);
-  }
+body {
+	margin: 0;
+	color: var(--brand-neutral);
+	font-family: "Inter", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+	background:
+		radial-gradient(circle at 12% 16%, rgba(0, 86, 210, 0.12), transparent 36%),
+		radial-gradient(circle at 84% 14%, rgba(255, 122, 0, 0.16), transparent 32%),
+		linear-gradient(180deg, #f8fbff 0%, #eef4fb 58%, #f5f8fc 100%);
+	min-height: 100vh;
 }
