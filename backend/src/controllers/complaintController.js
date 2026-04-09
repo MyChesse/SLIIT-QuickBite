@@ -282,3 +282,31 @@ export const deleteComplaint = async (req, res) => {
     });
   }
 };
+
+// Get complaints by email (user)
+export const getComplaintsByEmail = async (req, res) => {
+  try {
+    const { email } = req.params;
+
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email is required'
+      });
+    }
+
+    const complaints = await Complaint.find({ email: email.toLowerCase() }).sort({ createdAt: -1 });
+
+    res.status(200).json({
+      success: true,
+      message: 'Complaints retrieved successfully',
+      data: complaints
+    });
+  } catch (error) {
+    console.error('Error fetching complaints by email:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error'
+    });
+  }
+};

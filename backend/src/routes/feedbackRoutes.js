@@ -3,7 +3,8 @@ import {
   submitFeedback,
   getAllFeedback,
   getFeedbackById,
-  deleteFeedback
+  deleteFeedback,
+  getFeedbackByEmail
 } from '../controllers/feedbackController.js';
 
 const router = express.Router();
@@ -16,6 +17,9 @@ router.get('/', getAllFeedback);
 
 // GET /api/feedback/:id - Get feedback by ID
 router.get('/:id', getFeedbackById);
+
+// GET /api/feedback/email/:email - Get feedback by email (user)
+router.get('/email/:email', getFeedbackByEmail);
 
 // DELETE /api/feedback/:id - Delete feedback (admin)
 router.delete('/:id', deleteFeedback);

@@ -152,3 +152,31 @@ export const deleteFeedback = async (req, res) => {
     });
   }
 };
+
+// Get feedback by email (user)
+export const getFeedbackByEmail = async (req, res) => {
+  try {
+    const { email } = req.params;
+
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email is required'
+      });
+    }
+
+    const feedback = await Feedback.find({ email }).sort({ createdAt: -1 });
+
+    res.status(200).json({
+      success: true,
+      message: 'Feedback retrieved successfully',
+      data: feedback
+    });
+  } catch (error) {
+    console.error('Error fetching feedback:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error'
+    });
+  }
+};

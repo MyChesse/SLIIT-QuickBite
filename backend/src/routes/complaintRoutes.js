@@ -6,7 +6,8 @@ import {
   trackComplaintByComplaintId,
   updateComplaintStatus,
   replyToComplaint,
-  deleteComplaint
+  deleteComplaint,
+  getComplaintsByEmail
 } from '../controllers/complaintController.js';
 import { uploadComplaintPhoto } from '../middleware/upload.js';
 
@@ -18,11 +19,14 @@ router.post('/', uploadComplaintPhoto, submitComplaint);
 // GET /api/complaints - Get all complaints (admin) with optional filters
 router.get('/', getAllComplaints);
 
-// GET /api/complaints/:id - Get complaint by ID (admin)
-router.get('/:id', getComplaintById);
+// GET /api/complaints/email/:email - Get complaints by email (user)
+router.get('/email/:email', getComplaintsByEmail);
 
 // GET /api/complaints/track/:complaintId - Track complaint by complaintId (user)
 router.get('/track/:complaintId', trackComplaintByComplaintId);
+
+// GET /api/complaints/:id - Get complaint by ID (admin)
+router.get('/:id', getComplaintById);
 
 // PUT /api/complaints/:id/status - Update complaint status (admin)
 router.put('/:id/status', updateComplaintStatus);

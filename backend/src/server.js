@@ -19,9 +19,6 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5001;
 
-// Connect to database
-connectDB();
-
 // Middleware
 app.use(cors());
 app.use(express.json());
@@ -46,8 +43,19 @@ app.get('/api/health', (req, res) => {
 // Error handling middleware (should be last)
 app.use(errorHandler);
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`Server is running on port: ${PORT}`);
-  console.log(`Health check: http://localhost:${PORT}/api/health`);
-});
+const startServer = async () => {
+  try {
+    // Start HTTP server only after DB connection is established.
+    await connectDB();
+
+    app.listen(PORT, () => {
+      console.log(`Server is running on port: ${PORT}`);
+      console.log('MongoDB connected successfully');
+    });
+  } catch (error) {
+    console.error('Failed to start server:', error);
+    process.exit(1);
+  }
+};
+
+startServer();
