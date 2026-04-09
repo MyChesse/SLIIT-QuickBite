@@ -83,7 +83,7 @@ const Register = () => {
 };
 
   return (
-    <div className="bg-background text-on-background font-body min-h-screen flex flex-col">
+    <div className="bg-background text-on-background font-body min-h-screen flex flex-col bg-gray-400 ">
       <main className="flex-grow flex items-center justify-center p-6 md:p-12 lg:p-20">
         <div className="max-w-6xl w-full grid grid-cols-1 lg:grid-cols-12 overflow-hidden rounded-[2rem] editorial-shadow bg-surface-container-lowest">
 
@@ -165,7 +165,7 @@ const Register = () => {
                   >
                     {canteens.map(canteen => (
                       <option key={canteen._id} value={canteen._id}>
-                        🍽️ {canteen.name} - {canteen.location}
+                         {canteen.name} - {canteen.location}
                       </option>
                     ))}
                   </select>
