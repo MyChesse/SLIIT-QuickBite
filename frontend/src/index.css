@@ -1,5 +1,6 @@
 @import "tailwindcss";
 
+<<<<<<< HEAD
 @layer base {
   * {
     margin: 0;
@@ -62,4 +63,22 @@
   .text-neutral {
     color: var(--color-neutral);
   }
+=======
+:root {
+	--brand-primary: #0056d2;
+	--brand-secondary: #ff7a00;
+	--brand-tertiary: #a93802;
+	--brand-neutral: #475569;
+}
+
+body {
+	margin: 0;
+	color: var(--brand-neutral);
+	font-family: "Inter", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+	background:
+		radial-gradient(circle at 12% 16%, rgba(0, 86, 210, 0.12), transparent 36%),
+		radial-gradient(circle at 84% 14%, rgba(255, 122, 0, 0.16), transparent 32%),
+		linear-gradient(180deg, #f8fbff 0%, #eef4fb 58%, #f5f8fc 100%);
+	min-height: 100vh;
+>>>>>>> nuleka
 }

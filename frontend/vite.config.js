@@ -4,4 +4,11 @@ import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
+<<<<<<< HEAD
 })
+=======
+  optimizeDeps: {
+    include: ['jspdf', 'jspdf-autotable', 'html2canvas'],
+  },
+})
+>>>>>>> nuleka
