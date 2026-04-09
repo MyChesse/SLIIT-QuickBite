@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router';
+import { useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
-const API_BASE = 'http://localhost:5001';
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5001';
 
 /** Mongo/API may expose _id as string or an object with toString() */
 const normalizeOrderId = (id) => {
@@ -27,7 +27,7 @@ const OrderStatusPage = () => {
   const fetchOrders = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`${API_BASE}/orders`);
+      const response = await axios.get(`${API_BASE}/api/orders`);
       // Filter out cancelled orders immediately
       setOrders(response.data.filter(order => order.status !== 'Cancelled'));
     } catch (error) {
@@ -104,7 +104,7 @@ const OrderStatusPage = () => {
     }
 
     try {
-      await axios.put(`${API_BASE}/orders/${encodeURIComponent(orderId)}/cancel`);
+      await axios.put(`${API_BASE}/api/orders/${encodeURIComponent(orderId)}/cancel`);
       setOrders((prev) =>
         prev.filter((order) => normalizeOrderId(order._id) !== orderId)
       );

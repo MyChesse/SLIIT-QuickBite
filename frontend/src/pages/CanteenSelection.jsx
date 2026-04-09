@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router';
+import { useNavigate } from 'react-router-dom';
 
 const CanteenSelection = () => {
   const navigate = useNavigate();

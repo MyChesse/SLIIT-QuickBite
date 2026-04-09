@@ -1,8 +1,8 @@
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
-const AdminProtectedRoute = ({ children }) => {
-  const { isAuthenticated, isAdmin, loading } = useAuth();
+const StaffProtectedRoute = ({ children }) => {
+  const { isAuthenticated, user, loading } = useAuth();
 
   if (loading) {
     return <div>Loading...</div>;
@@ -12,11 +12,12 @@ const AdminProtectedRoute = ({ children }) => {
     return <Navigate to="/login" replace />;
   }
 
-  if (!isAdmin) {
+  if (user?.role !== 'staff') {
     return <Navigate to="/dashboard" replace />;
   }
 
   return children;
 };
 
-export default AdminProtectedRoute;
+export default StaffProtectedRoute;
+

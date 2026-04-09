@@ -1,5 +1,5 @@
 import { useContext } from 'react';
-import { Link, useLocation } from 'react-router';
+import { Link, useLocation } from 'react-router-dom';
 import { SDCanteenContext } from '../context/SDCanteenContext';
 
 const SDStaffSidebar = () => {
