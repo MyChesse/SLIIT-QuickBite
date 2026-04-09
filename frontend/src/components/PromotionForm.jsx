@@ -104,12 +104,29 @@ const PromotionForm = ({ canteenName, onSubmit }) => {
   const validateForm = () => {
     const newErrors = {};
 
-    if (!formData.title.trim()) {
+    // Title validation
+    const titleTrimmed = formData.title.trim();
+    if (!titleTrimmed) {
       newErrors.title = 'Title is required';
+    } else if (titleTrimmed.length < 5) {
+      newErrors.title = 'Title must be at least 5 characters long';
+    } else if (titleTrimmed.length > 80) {
+      newErrors.title = 'Title must not exceed 80 characters';
     }
 
-    if (!formData.description.trim()) {
+    // Description validation
+    const descriptionTrimmed = formData.description.trim();
+    if (!descriptionTrimmed) {
       newErrors.description = 'Description is required';
+    } else if (descriptionTrimmed.length < 20) {
+      newErrors.description = 'Description must be at least 20 characters long';
+    } else if (descriptionTrimmed.length > 300) {
+      newErrors.description = 'Description must not exceed 300 characters';
+    }
+
+    // Image validation
+    if (!formData.image) {
+      newErrors.image = 'Promotion image is required';
     }
 
     if (!formData.originalPrice || parseFloat(formData.originalPrice) <= 0) {
@@ -259,7 +276,7 @@ const PromotionForm = ({ canteenName, onSubmit }) => {
                 <span className="pointer-events-none absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow transition peer-checked:translate-x-5"></span>
               </label>
               <span className="text-sm font-semibold text-slate-700">
-                {showScheduled ? 'Hide' : 'Show'} Scheduled ({scheduledPromotions.length})
+                {showScheduled ? 'Hide' : 'Show'} Live Promotions Ads ({scheduledPromotions.length})
               </span>
             </div>
             <span className="text-sm text-slate-500">Today: {new Date().toLocaleDateString()}</span>
@@ -428,6 +445,7 @@ const PromotionForm = ({ canteenName, onSubmit }) => {
                   <p className="text-xs text-slate-500">
                     {imageFileName || (formData.image ? 'Image selected' : 'No file selected')}
                   </p>
+                  {errors.image && <p className="text-sm text-red-600">{errors.image}</p>}
                 </div>
 
                 <div className="rounded-xl bg-[#edf2fb] px-4 py-3">
