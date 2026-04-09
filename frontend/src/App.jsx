@@ -5,6 +5,10 @@ import AdminFeedbackPage from './pages/AdminFeedbackPage.jsx';
 import AdminComplaintsPage from './pages/AdminComplaintsPage.jsx';
 
 const App = () => {
+  const location = useLocation();
+
+  const isActive = (path) => location.pathname === path;
+
   return (
     <Router>
       <div style={{ fontFamily: 'Arial, sans-serif' }}>
