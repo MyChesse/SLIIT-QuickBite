@@ -1,4 +1,5 @@
 import express from 'express';
+import mongoose from 'mongoose';
 import Order from '../models/Order.js';
 
 const router = express.Router();
@@ -66,10 +67,45 @@ router.get('/', async (req, res) => {
   }
 });
 
+// Cancel an order (define before GET /:id so paths like "cancel" are never treated as an id)
+router.put('/:id/cancel', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: 'Invalid order id' });
+    }
+
+    const order = await Order.findById(id);
+
+    if (!order) {
+      return res.status(404).json({ message: 'Order not found' });
+    }
+
+    if (order.status === 'Completed' || order.status === 'Cancelled') {
+      return res.status(400).json({ message: `Cannot cancel an order that is ${order.status}` });
+    }
+
+    order.status = 'Cancelled';
+    await order.save();
+
+    res.json({ message: 'Order cancelled successfully', order });
+  } catch (error) {
+    console.error('Cancel order error:', error);
+    res.status(500).json({ message: 'Server error while cancelling order' });
+  }
+});
+
 // GET ORDER BY ID
 router.get('/:id', async (req, res) => {
   try {
-    const order = await Order.findById(req.params.id);
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ error: 'Invalid order id' });
+    }
+
+    const order = await Order.findById(id);
 
     if (!order) {
       return res.status(404).json({ error: 'Order not found' });
@@ -80,28 +116,5 @@ router.get('/:id', async (req, res) => {
     console.error('Error fetching order:', error.message);
     res.status(500).json({ error: error.message });
   }
-});
-
-// Cancel an order
-router.put('/:id/cancel', async (req, res) => {
-    try {
-        const order = await Order.findById(req.params.id); // Make sure Order is imported
-        if (!order) {
-            return res.status(404).json({ message: 'Order not found' });
-        }
-
-        // Only allow cancelling if not already completed or cancelled
-        if (order.status === 'Completed' || order.status === 'Cancelled') {
-            return res.status(400).json({ message: `Cannot cancel an order that is ${order.status}` });
-        }
-
-        order.status = 'Cancelled';
-        await order.save();
-
-        res.json({ message: 'Order cancelled successfully', order });
-    } catch (error) {
-        console.error('Cancel order error:', error);
-        res.status(500).json({ message: 'Server error while cancelling order' });
-    }
 });
 export default router;
