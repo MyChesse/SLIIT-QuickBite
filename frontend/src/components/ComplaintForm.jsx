@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { complaintAPI } from '../services/api.js';
 
 const ComplaintForm = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     userType: 'Student',
+    canteen: 'Canteen 3',
     category: 'Food issue',
     subject: '',
     description: '',
@@ -74,6 +77,18 @@ const ComplaintForm = () => {
       setError('Please enter a valid email');
       return false;
     }
+    if (!formData.canteen?.trim()) {
+      setError('Canteen selection is required');
+      return false;
+    }
+    if (!formData.userType?.trim()) {
+      setError('User Type is required');
+      return false;
+    }
+    if (!formData.category?.trim()) {
+      setError('Complaint Category is required');
+      return false;
+    }
     if (!formData.subject.trim()) {
       setError('Subject is required');
       return false;
@@ -88,6 +103,10 @@ const ComplaintForm = () => {
     }
     if (formData.issueDate > today) {
       setError('Issue date cannot be in the future');
+      return false;
+    }
+    if (!formData.priority?.trim()) {
+      setError('Priority Level is required');
       return false;
     }
     return true;
@@ -106,21 +125,10 @@ const ComplaintForm = () => {
     try {
       const response = await complaintAPI.submitComplaint(formData, photoFile);
       setSuccess(`Complaint submitted successfully! Your complaint ID is: ${response.data.complaintId}`);
-      setFormData({
-        name: '',
-        email: '',
-        userType: 'Student',
-        category: 'Food issue',
-        subject: '',
-        description: '',
-        issueDate: new Date().toISOString().split('T')[0],
-        priority: 'Medium'
-      });
-      setPhotoFile(null);
-      // Reset file input
-      if (e.target.elements.photo) {
-        e.target.elements.photo.value = '';
-      }
+      // Redirect back to support page after a short delay
+      setTimeout(() => {
+        navigate('/support');
+      }, 2000);
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to submit complaint');
     } finally {
@@ -129,134 +137,163 @@ const ComplaintForm = () => {
   };
 
   return (
-    <div style={{ maxWidth: '600px', margin: '0 auto', padding: '20px' }}>
-      <h2>Make Complaint</h2>
-      <p>Report a problem or bad experience that needs attention.</p>
-      
-      {error && <div style={{ color: 'red', marginBottom: '10px' }}>{error}</div>}
-      {success && <div style={{ color: 'green', marginBottom: '10px' }}>{success}</div>}
+    <div className="max-w-2xl mx-auto p-6 bg-white shadow-xl rounded-2xl border border-gray-100">
+      <div className="text-center mb-8">
+        <h2 className="text-3xl font-bold text-gray-800 mb-2">File a Complaint</h2>
+        <p className="text-gray-600">Report issues or problems that need immediate attention.</p>
+      </div>
 
-      <form onSubmit={handleSubmit}>
-        <div style={{ marginBottom: '15px' }}>
-          <label style={{ display: 'block', marginBottom: '5px' }}>Name *</label>
-          <input
-            type="text"
-            name="name"
-            value={formData.name}
-            onChange={handleChange}
-            required
-            pattern="[A-Za-z ]+"
-            title="Name can contain only letters and spaces"
-            style={{ width: '100%', padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }}
-          />
+      {error && <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4">{error}</div>}
+      {success && <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-4">{success}</div>}
+
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Full Name <span className="text-red-500">*</span></label>
+            <input
+              type="text"
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+              required
+              pattern="[A-Za-z ]+"
+              title="Name can contain only letters and spaces"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:sring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+              placeholder="Enter your full name"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Email Address <span className="text-red-500">*</span></label>
+            <input
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              required
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+              placeholder="your.email@example.com"
+            />
+          </div>
         </div>
 
-        <div style={{ marginBottom: '15px' }}>
-          <label style={{ display: 'block', marginBottom: '5px' }}>Email *</label>
-          <input
-            type="email"
-            name="email"
-            value={formData.email}
-            onChange={handleChange}
-            required
-            style={{ width: '100%', padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }}
-          />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">User Type <span className="text-red-500">*</span></label>
+            <select
+              name="userType"
+              value={formData.userType}
+              onChange={handleChange}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 bg-white"
+            >
+              <option value="Student">Student</option>
+              <option value="Staff">Staff</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Complaint Category <span className="text-red-500">*</span></label>
+            <select
+              name="category"
+              value={formData.category}
+              onChange={handleChange}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 bg-white"
+            >
+              <option value="Food issue">Food Issue</option>
+              <option value="Staff behavior">Staff Behavior</option>
+              <option value="Delay">Service Delay</option>
+              <option value="Hygiene">Hygiene</option>
+              <option value="Wrong order">Wrong Order</option>
+              <option value="Payment issue">Payment Issue</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
         </div>
 
-        <div style={{ marginBottom: '15px' }}>
-          <label style={{ display: 'block', marginBottom: '5px' }}>User Type *</label>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Canteen <span className="text-red-500">*</span></label>
           <select
-            name="userType"
-            value={formData.userType}
+            name="canteen"
+            value={formData.canteen}
             onChange={handleChange}
-            style={{ width: '100%', padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }}
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 bg-white"
           >
-            <option value="Student">Student</option>
-            <option value="Staff">Staff</option>
+            <option value="Choose the Canteen">Choose the Canteen</option>
+            <option value="ABC">ABC</option>
+            <option value="BCD">BCD</option>
+            <option value="STU">STU</option>
           </select>
         </div>
 
-        <div style={{ marginBottom: '15px' }}>
-          <label style={{ display: 'block', marginBottom: '5px' }}>Complaint Category *</label>
-          <select
-            name="category"
-            value={formData.category}
-            onChange={handleChange}
-            style={{ width: '100%', padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }}
-          >
-            <option value="Food issue">Food issue</option>
-            <option value="Staff behavior">Staff behavior</option>
-            <option value="Delay">Delay</option>
-            <option value="Hygiene">Hygiene</option>
-            <option value="Wrong order">Wrong order</option>
-            <option value="Payment issue">Payment issue</option>
-            <option value="Other">Other</option>
-          </select>
-        </div>
-
-        <div style={{ marginBottom: '15px' }}>
-          <label style={{ display: 'block', marginBottom: '5px' }}>Subject *</label>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Subject <span className="text-red-500">*</span></label>
           <input
             type="text"
             name="subject"
             value={formData.subject}
             onChange={handleChange}
             required
-            style={{ width: '100%', padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }}
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+            placeholder="Brief summary of your complaint"
           />
         </div>
 
-        <div style={{ marginBottom: '15px' }}>
-          <label style={{ display: 'block', marginBottom: '5px' }}>Description *</label>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Detailed Description <span className="text-red-500">*</span></label>
           <textarea
             name="description"
             value={formData.description}
             onChange={handleChange}
             required
-            rows="4"
-            style={{ width: '100%', padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }}
+            rows="5"
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 resize-none"
+            placeholder="Please provide detailed information about the issue..."
           />
         </div>
 
-        <div style={{ marginBottom: '15px' }}>
-          <label style={{ display: 'block', marginBottom: '5px' }}>Date of Issue *</label>
-          <input
-            type="date"
-            name="issueDate"
-            value={formData.issueDate}
-            onChange={handleChange}
-            required
-            max={today}
-            style={{ width: '100%', padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }}
-          />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Date of Issue <span className="text-red-500">*</span></label>
+            <input
+              type="date"
+              name="issueDate"
+              value={formData.issueDate}
+              onChange={handleChange}
+              required
+              max={today}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Priority Level <span className="text-red-500">*</span></label>
+            <select
+              name="priority"
+              value={formData.priority}
+              onChange={handleChange}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 bg-white"
+            >
+              <option value="Low">Low</option>
+              <option value="Medium">Medium</option>
+              <option value="High">High</option>
+            </select>
+          </div>
         </div>
 
-        <div style={{ marginBottom: '15px' }}>
-          <label style={{ display: 'block', marginBottom: '5px' }}>Priority *</label>
-          <select
-            name="priority"
-            value={formData.priority}
-            onChange={handleChange}
-            style={{ width: '100%', padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }}
-          >
-            <option value="Low">Low</option>
-            <option value="Medium">Medium</option>
-            <option value="High">High</option>
-          </select>
-        </div>
-
-        <div style={{ marginBottom: '15px' }}>
-          <label style={{ display: 'block', marginBottom: '5px' }}>Photo (Optional)</label>
-          <input
-            type="file"
-            name="photo"
-            accept="image/*"
-            onChange={handleFileChange}
-            style={{ width: '100%', padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }}
-          />
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Supporting Photo (Optional)</label>
+          <div className="relative">
+            <input
+              type="file"
+              name="photo"
+              accept="image/*"
+              onChange={handleFileChange}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 file:mr-4 file:py-2 file:px-4 file:rounded-l-lg file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+            />
+          </div>
           {photoFile && (
-            <div style={{ marginTop: '5px', fontSize: '14px', color: '#666' }}>
-              Selected: {photoFile.name}
+            <div className="mt-2 text-sm text-gray-600 bg-gray-50 px-3 py-2 rounded-lg">
+              📎 Selected: {photoFile.name}
             </div>
           )}
         </div>
@@ -264,16 +301,13 @@ const ComplaintForm = () => {
         <button
           type="submit"
           disabled={loading}
-          style={{
-            padding: '10px 20px',
-            backgroundColor: loading ? '#ccc' : '#007bff',
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: loading ? 'not-allowed' : 'pointer'
-          }}
+          className={`w-full py-3 px-6 rounded-lg font-semibold text-white transition-all duration-200 transform ${
+            loading
+              ? 'bg-gray-400 cursor-not-allowed'
+              : 'bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 hover:scale-105 shadow-lg hover:shadow-xl'
+          }`}
         >
-          {loading ? 'Submitting...' : 'Submit Complaint'}
+          {loading ? 'Submitting Complaint...' : 'Submit Complaint'}
         </button>
       </form>
     </div>

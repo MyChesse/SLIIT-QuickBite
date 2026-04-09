@@ -1,7 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import SupportPage from './pages/SupportPage.jsx';
-import ComplaintTracker from './pages/ComplaintTracker.jsx';
 import AdminFeedbackPage from './pages/AdminFeedbackPage.jsx';
 import AdminComplaintsPage from './pages/AdminComplaintsPage.jsx';
 
@@ -29,14 +28,14 @@ const App = () => {
               Support
             </Link>
             <Link 
-              to="/track-complaint" 
+              to="/admin/feedback" 
               style={{
                 marginRight: '20px',
                 textDecoration: 'none',
                 color: '#007bff'
               }}
             >
-              Track Complaint
+              Admin Feedback
             </Link>
             <Link 
               to="/admin/feedback" 
@@ -64,7 +63,6 @@ const App = () => {
         {/* Routes */}
         <Routes>
           <Route path="/support" element={<SupportPage />} />
-          <Route path="/track-complaint" element={<ComplaintTracker />} />
           <Route path="/admin/feedback" element={<AdminFeedbackPage />} />
           <Route path="/admin/complaints" element={<AdminComplaintsPage />} />
           

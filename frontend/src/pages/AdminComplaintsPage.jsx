@@ -1,5 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { complaintAPI } from '../services/api.js';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
+import html2canvas from 'html2canvas';
 
 const AdminComplaintsPage = () => {
   const [complaints, setComplaints] = useState([]);
@@ -12,7 +15,21 @@ const AdminComplaintsPage = () => {
     priority: ''
   });
   const [replyModal, setReplyModal] = useState({ open: false, complaintId: '', reply: '' });
+  const [exporting, setExporting] = useState(false);
+  const exportRef = useRef(null);
 
+  const handleExportPDF = async () => {
+    if (filteredComplaints.length === 0) {
+      setError('No complaints to export. Adjust filters or add complaints first.');
+      return;
+    }
+
+    setError('');
+    setExporting(true);
+
+  };
+
+  
   useEffect(() => {
     fetchComplaints();
   }, []);
@@ -82,17 +99,6 @@ const AdminComplaintsPage = () => {
       fetchComplaints(); // Refresh the list
     } catch (err) {
       setError('Failed to submit reply');
-    }
-  };
-
-  const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this complaint?')) {
-      try {
-        await complaintAPI.deleteComplaint(id);
-        fetchComplaints(); // Refresh the list
-      } catch (err) {
-        setError('Failed to delete complaint');
-      }
     }
   };
 
@@ -237,7 +243,9 @@ const AdminComplaintsPage = () => {
           </div>
         )}
 
-        <div className="mt-6 space-y-4">
+      
+
+        <div ref={exportRef} className="mt-6 space-y-4">
           {filteredComplaints.length === 0 ? (
             <div className="rounded-3xl border border-dashed border-slate-300 bg-white/70 px-6 py-12 text-center text-[#475569]">
               No complaints found matching the current filters.
@@ -323,12 +331,6 @@ const AdminComplaintsPage = () => {
                     {complaint.adminReply ? 'Edit Reply' : 'Add Reply'}
                   </button>
 
-                  <button
-                    onClick={() => handleDelete(complaint._id)}
-                    className="rounded-xl border border-[#A93802]/30 bg-[#A93802]/10 px-4 py-2 text-sm font-semibold text-[#A93802] transition hover:bg-[#A93802]/20"
-                  >
-                    Delete
-                  </button>
                 </div>
               </article>
             ))
@@ -372,3 +374,4 @@ const AdminComplaintsPage = () => {
 };
 
 export default AdminComplaintsPage;
+

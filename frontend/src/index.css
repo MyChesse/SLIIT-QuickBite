@@ -10,7 +10,7 @@
 body {
 	margin: 0;
 	color: var(--brand-neutral);
-	font-family: "Poppins", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+	font-family: "Inter", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 	background:
 		radial-gradient(circle at 12% 16%, rgba(0, 86, 210, 0.12), transparent 36%),
 		radial-gradient(circle at 84% 14%, rgba(255, 122, 0, 0.16), transparent 32%),

@@ -39,6 +39,12 @@ export const feedbackAPI = {
     return response.data;
   },
 
+  // Get feedback by email (user)
+  getFeedbackByEmail: async (email) => {
+    const response = await api.get(`/feedback/email/${email}`);
+    return response.data;
+  },
+
   // Delete feedback (admin)
   deleteFeedback: async (id) => {
     const response = await api.delete(`/feedback/${id}`);
@@ -86,6 +92,12 @@ export const complaintAPI = {
   // Track complaint by complaintId (user)
   trackComplaint: async (complaintId) => {
     const response = await api.get(`/complaints/track/${complaintId}`);
+    return response.data;
+  },
+
+  // Get complaints by email (user)
+  getComplaintsByEmail: async (email) => {
+    const response = await api.get(`/complaints/email/${email}`);
     return response.data;
   },
 
