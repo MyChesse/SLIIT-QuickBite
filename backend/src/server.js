@@ -7,7 +7,7 @@ import SDinventoryRoutes from './routes/SDinventoryRoutes.js';
 import SDcanteenRoutes from './routes/SDcanteenRoutes.js';
 import authRoutes from './routes/auth.js';
 import adminRoutes from './routes/admin.js';
-import promotionRoutes from './routes/promotionRoutes.js';
+
 
 dotenv.config();
 
