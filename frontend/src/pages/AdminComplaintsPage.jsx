@@ -1,10 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { complaintAPI } from '../services/api.js';
-<<<<<<< HEAD
-import jsPDF from 'jspdf';
-=======
 import { jsPDF } from 'jspdf';
->>>>>>> 92c8bbe (Complete the UI)
 import 'jspdf-autotable';
 import html2canvas from 'html2canvas';
 
