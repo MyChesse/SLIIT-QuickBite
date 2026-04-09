@@ -19,8 +19,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
+const PORT = process.env.PORT || 5001;
 
-// CORS Configuration
 app.use(
   cors({
     origin: [
@@ -36,8 +36,6 @@ app.use(
 );
 
 app.options('*', cors());
-
-// Body parser middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -66,8 +64,6 @@ app.get('/api/health', (req, res) => {
 app.get('/', (req, res) => {
   res.json({ message: 'SLIIT QuickBite API' });
 });
-
-const PORT = process.env.PORT || 5001;
 
 // Error handling middleware (should be last)
 app.use(errorHandler);
