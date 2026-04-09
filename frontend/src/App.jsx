@@ -1,16 +1,16 @@
 import React from 'react';
-
 import { Routes, Route, Navigate, useLocation } from 'react-router';
 import { Toaster } from 'react-hot-toast';
+
+// Components
 import Navbar from './components/Navbar';
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminProtectedRoute from './components/AdminProtectedRoute';
 import StaffProtectedRoute from './components/StaffProtectedRoute';
 
-
 // Pages
 import SDInventoryPage from './pages/SDInventoryPage';
-import SDMenuPage from './pages/SDMenuPage';   
+import SDMenuPage from './pages/SDMenuPage';
 import Register from './pages/Register';
 import Login from './pages/Login';
 import UserDashboard from './pages/UserDashboard';
@@ -20,45 +20,9 @@ import DailyPromotions from './pages/DailyPromotions';
 import AddNewCanteenPromotion from './pages/AddNewCanteenPromotion';
 import AddBasementCanteenPromotion from './pages/AddBasementCanteenPromotion';
 import AddAnohanaCanteenPromotion from './pages/AddAnohanaCanteenPromotion';
-import CanteenSelection from './pages/CanteenSelection';     
+import CanteenSelection from './pages/CanteenSelection';
 
 const App = () => {
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <Routes>
-        {/* Staff Routes */}
-        <Route 
-        path="/inventory" 
-        element={
-            <StaffProtectedRoute>
-                <SDInventoryPage />
-            </StaffProtectedRoute>
-        } 
-    />
-        {/* Student Routes */}
-        <Route path="/menu" element={<SDMenuPage />} />
-                
-         <Route path="/" element={<Navigate to="/login" replace />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-        <Route path="/dashboard" element={<ProtectedRoute><UserDashboard /></ProtectedRoute>} />
-        <Route path="/admin/dashboard" element={<AdminProtectedRoute><AdminDashboard /></AdminProtectedRoute>} />
-        <Route path="/admin/promotions" element={<AdminProtectedRoute><CanteenSelection /></AdminProtectedRoute>} />
-
-        
-      </Routes>
-    </div>
-  );
-};
-
-
-
-
-
-
-
-const AppContent = () => {
   const location = useLocation();
   const hideNavbar = location.pathname.startsWith('/admin/promotions');
 
@@ -66,10 +30,24 @@ const AppContent = () => {
     <div>
       {!hideNavbar && <Navbar />}
       <Routes>
-        {/* Public routes */}
-       
+        {/* Public Routes */}
+        <Route path="/register" element={<Register />} />
+        <Route path="/login" element={<Login />} />
 
-        {/* Protected user routes */}
+        {/* Staff Routes */}
+        <Route
+          path="/inventory"
+          element={
+            <StaffProtectedRoute>
+              <SDInventoryPage />
+            </StaffProtectedRoute>
+          }
+        />
+
+        {/* Student Routes */}
+        <Route path="/menu" element={<SDMenuPage />} />
+
+        {/* Protected User Routes */}
         <Route
           path="/dashboard"
           element={
@@ -87,7 +65,7 @@ const AppContent = () => {
           }
         />
 
-        {/* Protected admin routes */}
+        {/* Protected Admin Routes */}
         <Route
           path="/admin/dashboard"
           element={
@@ -105,12 +83,8 @@ const AppContent = () => {
           }
         />
         <Route
-          path="/admin/promotions/daily"
-          element={
-            <AdminProtectedRoute>
-              <DailyPromotions />
-            </AdminProtectedRoute>
-          }
+          path="/promotions"
+          element={<DailyPromotions />}
         />
         <Route
           path="/admin/promotions/new-canteen"
@@ -137,13 +111,18 @@ const AppContent = () => {
           }
         />
 
-        {/* Catch all */}
+        {/* Default Route */}
+        <Route path="/" element={<Navigate to="/login" replace />} />
+
+        {/* Catch all - 404 */}
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
       <Toaster position="top-right" />
     </div>
   );
 };
+
+
 
   {/*const App = () => {
   return (

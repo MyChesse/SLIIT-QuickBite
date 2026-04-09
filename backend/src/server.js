@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import { connectDB } from './config/db.js';
+import promotionRoutes from './routes/promotionRoutes.js';
 import dotenv from 'dotenv';
 import SDinventoryRoutes from './routes/SDinventoryRoutes.js';
 import SDcanteenRoutes from './routes/SDcanteenRoutes.js';
@@ -33,6 +34,7 @@ app.use("/api/canteens", SDcanteenRoutes);
 app.use('/uploads', express.static('uploads'));
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/promotions', promotionRoutes);
 
 // Basic route for testing
 app.get('/', (req, res) => {
@@ -40,6 +42,19 @@ app.get('/', (req, res) => {
 });
 
 const PORT = process.env.PORT || 5001;
+
+// Middleware
+app.use(cors());
+app.use(express.json());
+
+// Routes
+app.use('/api/promotions', promotionRoutes);
+
+connectDB();
+
+app.listen(PORT, () => {
+    console.log("Server is running on Port: ", PORT);
+});
 
 const MAX_PORT_RETRIES = 10;
 
