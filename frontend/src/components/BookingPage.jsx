@@ -261,8 +261,7 @@ const BookingPage = ({ cart, clearCart }) => {
                     '/order-status',
                     {
                         state: {
-                            orderId:
-                                response.data.order._id,
+                            orderId: String(response.data.order._id),
                             justPlaced: true
                         }
                     }

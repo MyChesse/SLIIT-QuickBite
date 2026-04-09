@@ -2,6 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router';
 import axios from 'axios';
 
+const API_BASE = 'http://localhost:5001';
+
+/** Mongo/API may expose _id as string or an object with toString() */
+const normalizeOrderId = (id) => {
+  if (id == null) return '';
+  if (typeof id === 'string') return id;
+  if (typeof id.toString === 'function') return id.toString();
+  return String(id);
+};
+
 const OrderStatusPage = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -17,7 +27,7 @@ const OrderStatusPage = () => {
   const fetchOrders = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('http://localhost:5001/orders');
+      const response = await axios.get(`${API_BASE}/orders`);
       // Filter out cancelled orders immediately
       setOrders(response.data.filter(order => order.status !== 'Cancelled'));
     } catch (error) {
@@ -87,14 +97,25 @@ const OrderStatusPage = () => {
   const handleCancelOrder = async (id) => {
     if (!window.confirm('Are you sure you want to cancel this order?')) return;
 
+    const orderId = normalizeOrderId(id);
+    if (!orderId) {
+      alert('Invalid order id.');
+      return;
+    }
+
     try {
-      await axios.put(`http://localhost:5001/orders/${id}/cancel`);
-      // Remove cancelled order immediately from UI
-      setOrders(prev => prev.filter(order => order._id !== id));
+      await axios.put(`${API_BASE}/orders/${encodeURIComponent(orderId)}/cancel`);
+      setOrders((prev) =>
+        prev.filter((order) => normalizeOrderId(order._id) !== orderId)
+      );
       alert('Order cancelled successfully!');
     } catch (error) {
       console.error('Error cancelling order:', error);
-      alert('Failed to cancel the order. Please try again.');
+      const msg =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.message;
+      alert(msg || 'Failed to cancel the order. Please try again.');
     }
   };
 
@@ -108,7 +129,9 @@ const OrderStatusPage = () => {
   }
 
   // Show justPlaced alert only if the order exists and is not cancelled
-  const currentOrder = orders.find(o => o._id === orderId);
+  const currentOrder = orders.find(
+    (o) => normalizeOrderId(o._id) === normalizeOrderId(orderId)
+  );
 
   return (
     <div style={styles.container}>
