@@ -6,7 +6,7 @@ import SDinventoryRoutes from './routes/SDinventoryRoutes.js';
 import SDcanteenRoutes from './routes/SDcanteenRoutes.js';
 import authRoutes from './routes/auth.js';
 import adminRoutes from './routes/admin.js';
-import promotionRoutes from './routes/promotionRoutes.js';
+
 
 dotenv.config();
 
@@ -33,7 +33,6 @@ app.use("/api/canteens", SDcanteenRoutes);
 app.use('/uploads', express.static('uploads'));
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
-app.use('/api/promotions', promotionRoutes);
 
 // Basic route for testing
 app.get('/', (req, res) => {
