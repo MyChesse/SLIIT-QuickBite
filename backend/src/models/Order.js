@@ -52,6 +52,16 @@ const OrderSchema = new mongoose.Schema({
     default: "Pending",
   },
 
+  cancelledByAdmin: {
+    type: Boolean,
+    default: false,
+  },
+
+  statusMessage: {
+    type: String,
+    default: "",
+  },
+
   createdAt: {
     type: Date,
     default: Date.now,

@@ -70,8 +70,8 @@ router.get("/", async (req, res) => {
   }
 });
 
-// Cancel an order (define before GET /:id so paths like "cancel" are never treated as an id)
-router.put("/:id/cancel", async (req, res) => {
+// Accept an order (fallback route for environments without /api/admin endpoints)
+router.put("/:id/accept", async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -85,19 +85,125 @@ router.put("/:id/cancel", async (req, res) => {
       return res.status(404).json({ message: "Order not found" });
     }
 
-    if (order.status === "Completed" || order.status === "Cancelled") {
+    if (order.status !== "Pending") {
+      return res
+        .status(400)
+        .json({ message: "Only pending orders can be accepted" });
+    }
+
+    order.status = "Accepted";
+    order.cancelledByAdmin = false;
+    order.statusMessage = "Order accepted by kitchen";
+    await order.save();
+
+    res.json({ message: "Order accepted successfully", order });
+  } catch (error) {
+    console.error("Accept order error:", error);
+    res.status(500).json({ message: "Server error while accepting order" });
+  }
+});
+
+// Mark order as ready (fallback route for environments without /api/admin endpoints)
+router.put("/:id/ready", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: "Invalid order id" });
+    }
+
+    const order = await Order.findById(id);
+
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    if (order.status !== "Accepted") {
+      return res
+        .status(400)
+        .json({ message: "Only accepted orders can be marked ready" });
+    }
+
+    order.status = "Ready";
+    order.cancelledByAdmin = false;
+    order.statusMessage = "Order is ready for pickup";
+    await order.save();
+
+    res.json({ message: "Order marked as ready", order });
+  } catch (error) {
+    console.error("Ready order error:", error);
+    res.status(500).json({ message: "Server error while updating order" });
+  }
+});
+
+// Cancel an order (define before GET /:id so paths like "cancel" are never treated as an id)
+router.put("/:id/cancel", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const adminCancel = req.body?.adminCancel === true;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: "Invalid order id" });
+    }
+
+    const order = await Order.findById(id);
+
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    if (
+      order.status === "Completed" ||
+      order.status === "Cancelled" ||
+      order.status === "Ready"
+    ) {
       return res
         .status(400)
         .json({ message: `Cannot cancel an order that is ${order.status}` });
     }
 
     order.status = "Cancelled";
+    order.cancelledByAdmin = adminCancel;
+    order.statusMessage = adminCancel
+      ? "Kitchen rejected the order"
+      : "Order cancelled by user";
     await order.save();
 
     res.json({ message: "Order cancelled successfully", order });
   } catch (error) {
     console.error("Cancel order error:", error);
     res.status(500).json({ message: "Server error while cancelling order" });
+  }
+});
+
+// Complete an order after it is ready
+router.put("/:id/complete", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: "Invalid order id" });
+    }
+
+    const order = await Order.findById(id);
+
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    if (order.status !== "Ready") {
+      return res
+        .status(400)
+        .json({ message: "Only ready orders can be completed" });
+    }
+
+    order.status = "Completed";
+    await order.save();
+
+    res.json({ message: "Order completed successfully", order });
+  } catch (error) {
+    console.error("Complete order error:", error);
+    res.status(500).json({ message: "Server error while completing order" });
   }
 });
 

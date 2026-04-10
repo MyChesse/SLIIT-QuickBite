@@ -15,7 +15,7 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
+  const { login, user } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -27,6 +27,18 @@ const Login = () => {
       setRememberMe(true);
     }
   }, []);
+
+  useEffect(() => {
+    const role = user?.role?.toLowerCase();
+
+    if (role === "admin") {
+      navigate("/admin/dashboard", { replace: true });
+    } else if (role === "staff") {
+      navigate("/inventory", { replace: true });
+    } else if (role === "student") {
+      navigate("/menu", { replace: true });
+    }
+  }, [user, navigate]);
 
   const handleChange = (e) => {
     setFormData({
@@ -106,12 +118,14 @@ const Login = () => {
         localStorage.setItem("rememberedEmail", formData.email);
         localStorage.setItem("rememberMe", "true");
       }
-      if (result.user.role === "admin") {
-        navigate("/admin/dashboard");
-      } else if (result.user.role === "staff") {
-        navigate("/inventory");
+      const role = result.user?.role?.toLowerCase();
+
+      if (role === "admin") {
+        navigate("/admin/dashboard", { replace: true });
+      } else if (role === "staff") {
+        navigate("/inventory", { replace: true });
       } else {
-        navigate("/menu");
+        navigate("/menu", { replace: true });
       }
     } else {
       toast.error(result.message);

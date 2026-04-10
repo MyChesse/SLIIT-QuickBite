@@ -14,6 +14,7 @@ const OrderStatusPage = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [cancelTargetId, setCancelTargetId] = useState("");
+  const [completeTargetId, setCompleteTargetId] = useState("");
   const [popup, setPopup] = useState({
     open: false,
     type: "success",
@@ -25,19 +26,30 @@ const OrderStatusPage = () => {
   const justPlaced = location.state?.justPlaced;
 
   useEffect(() => {
-    fetchOrders();
+    fetchOrders(true);
   }, []);
 
-  const fetchOrders = async () => {
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      fetchOrders(false);
+    }, 5000);
+
+    return () => clearInterval(intervalId);
+  }, []);
+
+  const fetchOrders = async (showLoader = true) => {
     try {
-      setLoading(true);
+      if (showLoader) {
+        setLoading(true);
+      }
       const response = await api.get("/orders");
-      // Filter out cancelled orders immediately
       setOrders(response.data.filter((order) => order.status !== "Cancelled"));
     } catch (error) {
       console.error("Error fetching orders:", error);
     } finally {
-      setLoading(false);
+      if (showLoader) {
+        setLoading(false);
+      }
     }
   };
 
@@ -51,6 +63,8 @@ const OrderStatusPage = () => {
         return "#a855f7";
       case "Completed":
         return "#10b981";
+      case "Cancelled":
+        return "#ef4444";
       default:
         return "#9ca3af";
     }
@@ -66,13 +80,18 @@ const OrderStatusPage = () => {
         return "🎁";
       case "Completed":
         return "✅";
+      case "Cancelled":
+        return "❌";
       default:
         return "📦";
     }
   };
 
   const OrderStatusFlow = ({ status }) => {
-    const statuses = ["Pending", "Accepted", "Ready", "Completed"];
+    const statuses =
+      status === "Cancelled"
+        ? ["Pending", "Accepted", "Cancelled"]
+        : ["Pending", "Accepted", "Ready", "Completed"];
     const currentIndex = statuses.indexOf(status);
 
     return (
@@ -155,6 +174,53 @@ const OrderStatusPage = () => {
       });
     } finally {
       setCancelTargetId("");
+    }
+  };
+
+  const handleCompleteOrder = (id) => {
+    const normalized = normalizeOrderId(id);
+    if (!normalized) {
+      setPopup({
+        open: true,
+        type: "error",
+        message: "Invalid order id.",
+      });
+      return;
+    }
+
+    setCompleteTargetId(normalized);
+  };
+
+  const confirmCompleteOrder = async () => {
+    if (!completeTargetId) return;
+
+    try {
+      await api.put(`/orders/${encodeURIComponent(completeTargetId)}/complete`);
+      setOrders((prev) =>
+        prev.map((order) =>
+          normalizeOrderId(order._id) === completeTargetId
+            ? { ...order, status: "Completed" }
+            : order,
+        ),
+      );
+      setPopup({
+        open: true,
+        type: "success",
+        message: "Order marked as completed.",
+      });
+    } catch (error) {
+      console.error("Error completing order:", error);
+      const msg =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.message;
+      setPopup({
+        open: true,
+        type: "error",
+        message: msg || "Failed to complete the order. Please try again.",
+      });
+    } finally {
+      setCompleteTargetId("");
     }
   };
 
@@ -302,12 +368,32 @@ const OrderStatusPage = () => {
                   <OrderStatusFlow status={order.status} />
                 </div>
 
-                <button
-                  style={styles.cancelButton}
-                  onClick={() => handleCancelOrder(order._id)}
-                >
-                  ❌ Cancel Order
-                </button>
+                {(order.status === "Pending" ||
+                  order.status === "Accepted") && (
+                  <button
+                    style={styles.cancelButton}
+                    onClick={() => handleCancelOrder(order._id)}
+                  >
+                    ❌ Cancel Order
+                  </button>
+                )}
+
+                {order.status === "Ready" && (
+                  <button
+                    style={styles.completeButton}
+                    onClick={() => handleCompleteOrder(order._id)}
+                  >
+                    ✅ Complete Order
+                  </button>
+                )}
+
+                {order.status === "Cancelled" && (
+                  <div style={styles.rejectedMessage}>
+                    {order.cancelledByAdmin
+                      ? order.statusMessage || "Kitchen rejected the order"
+                      : order.statusMessage || "Order cancelled"}
+                  </div>
+                )}
               </div>
             ))}
           </div>
@@ -345,6 +431,31 @@ const OrderStatusPage = () => {
                 onClick={confirmCancelOrder}
               >
                 Yes, Cancel Order
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {completeTargetId && (
+        <div style={styles.modalOverlay}>
+          <div style={styles.modalCard}>
+            <h3 style={styles.modalTitle}>Complete This Order?</h3>
+            <p style={styles.modalText}>
+              Mark this ready order as completed after pickup.
+            </p>
+            <div style={styles.modalActions}>
+              <button
+                style={styles.modalCancelButton}
+                onClick={() => setCompleteTargetId("")}
+              >
+                Not Yet
+              </button>
+              <button
+                style={styles.modalSuccessCloseButton}
+                onClick={confirmCompleteOrder}
+              >
+                Yes, Complete
               </button>
             </div>
           </div>
@@ -397,6 +508,26 @@ const styles = {
     padding: "60px 20px",
     backgroundColor: "#f9fafb",
     borderRadius: "12px",
+  },
+  completeButton: {
+    marginTop: "16px",
+    background: "#16a34a",
+    color: "#fff",
+    border: "none",
+    borderRadius: "8px",
+    padding: "10px 14px",
+    fontWeight: "600",
+    cursor: "pointer",
+  },
+  rejectedMessage: {
+    marginTop: "12px",
+    padding: "10px 12px",
+    borderRadius: "8px",
+    backgroundColor: "#fef2f2",
+    border: "1px solid #fecaca",
+    color: "#991b1b",
+    fontSize: "13px",
+    fontWeight: "600",
   },
   emptyIcon: { fontSize: "64px", marginBottom: "20px" },
   shopButton: {

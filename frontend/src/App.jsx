@@ -19,6 +19,7 @@ import Login from "./pages/Login";
 import UserDashboard from "./pages/UserDashboard";
 import Profile from "./pages/Profile";
 import AdminDashboard from "./pages/AdminDashboard";
+import AdminViewOrders from "./pages/AdminViewOrders";
 import DailyPromotions from "./pages/DailyPromotions";
 import AddNewCanteenPromotion from "./pages/AddNewCanteenPromotion";
 import AddBasementCanteenPromotion from "./pages/AddBasementCanteenPromotion";
@@ -133,6 +134,15 @@ const App = () => {
             element={
               <AdminProtectedRoute>
                 <AddAnohanaCanteenPromotion />
+              </AdminProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/admin/orders"
+            element={
+              <AdminProtectedRoute>
+                <AdminViewOrders />
               </AdminProtectedRoute>
             }
           />

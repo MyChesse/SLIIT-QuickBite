@@ -1,6 +1,7 @@
 import express from "express";
 import { protect, admin } from "../middleware/auth.js";
 import User from "../models/User.js";
+import Order from "../models/Order.js";
 
 const router = express.Router();
 
@@ -19,6 +20,8 @@ router.get("/dashboard-summary", protect, admin, async (req, res) => {
     const activeUsers = await User.countDocuments({ status: "active" });
     const suspendedUsers = await User.countDocuments({ status: "suspended" });
 
+    const totalOrders = await Order.countDocuments();
+
     // Mock data for other modules (replace with real data when available)
     const summary = {
       totalUsers,
@@ -27,7 +30,7 @@ router.get("/dashboard-summary", protect, admin, async (req, res) => {
       admins: adminCount,
       activeUsers,
       suspendedUsers,
-      totalOrders: 0, // Placeholder
+      totalOrders,
       totalBookings: 0, // Placeholder
       totalComplaints: 0, // Placeholder
       totalFeedbacks: 0, // Placeholder
@@ -35,6 +38,106 @@ router.get("/dashboard-summary", protect, admin, async (req, res) => {
     };
 
     res.json(summary);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// @desc    Get all orders for admin panel
+// @route   GET /api/admin/orders
+// @access  Private/Admin
+router.get("/orders", protect, admin, async (req, res) => {
+  try {
+    const orders = await Order.find().sort({ createdAt: -1 });
+    res.json({ orders });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// @desc    Accept an order
+// @route   PUT /api/admin/orders/:id/accept
+// @access  Private/Admin
+router.put("/orders/:id/accept", protect, admin, async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id);
+
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    if (order.status !== "Pending") {
+      return res
+        .status(400)
+        .json({ message: "Only pending orders can be accepted" });
+    }
+
+    order.status = "Accepted";
+    order.cancelledByAdmin = false;
+    order.statusMessage = "Order accepted by kitchen";
+    await order.save();
+
+    res.json({ message: "Order accepted successfully", order });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// @desc    Mark an order as ready
+// @route   PUT /api/admin/orders/:id/ready
+// @access  Private/Admin
+router.put("/orders/:id/ready", protect, admin, async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id);
+
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    if (order.status !== "Accepted") {
+      return res
+        .status(400)
+        .json({ message: "Only accepted orders can be marked ready" });
+    }
+
+    order.status = "Ready";
+    order.cancelledByAdmin = false;
+    order.statusMessage = "Order is ready for pickup";
+    await order.save();
+
+    res.json({ message: "Order marked as ready", order });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// @desc    Cancel/reject an order from admin side
+// @route   PUT /api/admin/orders/:id/cancel
+// @access  Private/Admin
+router.put("/orders/:id/cancel", protect, admin, async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id);
+
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    if (!["Pending", "Accepted"].includes(order.status)) {
+      return res.status(400).json({
+        message: "Only pending or accepted orders can be cancelled",
+      });
+    }
+
+    order.status = "Cancelled";
+    order.cancelledByAdmin = true;
+    order.statusMessage = "Kitchen rejected the order";
+    await order.save();
+
+    res.json({ message: "Order cancelled successfully", order });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });

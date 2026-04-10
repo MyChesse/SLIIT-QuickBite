@@ -47,12 +47,19 @@ export const AuthProvider = ({ children }) => {
       const res = await api.post("/api/auth/login", { email, password });
 
       const { token: newToken, user: userData } = res.data;
+      const normalizedUser = {
+        ...userData,
+        role:
+          typeof userData?.role === "string"
+            ? userData.role.toLowerCase()
+            : userData?.role,
+      };
 
       setToken(newToken);
-      setUser(userData);
+      setUser(normalizedUser);
       localStorage.setItem("token", newToken);
 
-      return { success: true, user: userData };
+      return { success: true, user: normalizedUser };
     } catch (error) {
       return {
         success: false,
@@ -81,12 +88,19 @@ export const AuthProvider = ({ children }) => {
       });
 
       const { token: newToken, user: newUser } = res.data;
+      const normalizedUser = {
+        ...newUser,
+        role:
+          typeof newUser?.role === "string"
+            ? newUser.role.toLowerCase()
+            : newUser?.role,
+      };
 
       setToken(newToken);
-      setUser(newUser);
+      setUser(normalizedUser);
       localStorage.setItem("token", newToken);
 
-      return { success: true, user: newUser };
+      return { success: true, user: normalizedUser };
     } catch (error) {
       return {
         success: false,
@@ -124,8 +138,8 @@ export const AuthProvider = ({ children }) => {
     logout,
     updateProfile,
     isAuthenticated: !!user,
-    isAdmin: user?.role === "admin",
-    isStaff: user?.role === "staff",
+    isAdmin: user?.role?.toLowerCase() === "admin",
+    isStaff: user?.role?.toLowerCase() === "staff",
     assignedCanteens: user?.assignedCanteens || [], // ← New
   };
 
