@@ -4,7 +4,7 @@ import { feedbackAPI } from '../services/api.js';
 
 const FeedbackForm = () => {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({
+  const getDefaultFormData = () => ({
     name: '',
     email: '',
     userType: 'Student',
@@ -13,6 +13,8 @@ const FeedbackForm = () => {
     message: '',
     rating: 5
   });
+
+  const [formData, setFormData] = useState(getDefaultFormData);
 
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState('');
@@ -86,7 +88,9 @@ const FeedbackForm = () => {
 
     setLoading(true);
     try {
-      const response = await feedbackAPI.submitFeedback(formData);
+      await feedbackAPI.submitFeedback(formData);
+      setFormData(getDefaultFormData());
+      setHoverRating(0);
       setSuccess('Feedback submitted successfully!');
       // Redirect back to support page after a short delay
       setTimeout(() => {

@@ -1,16 +1,50 @@
 import { useContext } from 'react';
-import { Link, useLocation } from 'react-router';
+import { Link, useLocation, useNavigate } from 'react-router';
 import { SDCanteenContext } from '../context/SDCanteenContext';
+import { useAuth } from '../context/AuthContext';
 
 const SDStaffSidebar = () => {
     const location = useLocation();
-    const { selectedCanteenId } = useContext(SDCanteenContext);
+    const navigate = useNavigate();
+    const { logout } = useAuth();
+    const { selectedCanteenId, canteens, clearCanteen } = useContext(SDCanteenContext);
+
+    const handleLogout = () => {
+        clearCanteen();
+        logout();
+        navigate('/login');
+    };
+
+    const currentCanteen = canteens.find(
+        (canteen) => canteen._id?.toString() === selectedCanteenId?.toString()
+    );
+
+    const getAddPromotionPath = () => {
+        const canteenName = (currentCanteen?.name || '').trim().toLowerCase();
+
+        if (canteenName === 'main canteen') {
+            return '/add-promotion/new-canteen';
+        }
+
+        if (canteenName === 'hostel canteen') {
+            return '/add-promotion/basement-canteen';
+        }
+
+        if (canteenName === 'mini canteen') {
+            return '/add-promotion/anohana-canteen';
+        }
+
+        return '/add-promotion';
+    };
+
+    const addPromotionPath = getAddPromotionPath();
 
     const navItems = [
         { path: '/inventory', label: 'Inventory', icon: 'inventory_2', active: location.pathname === '/inventory' },
         { path: '/orders', label: 'Orders', icon: 'shopping_cart', active: location.pathname === '/orders' },
         { path: '/reports', label: 'Reports', icon: 'analytics', active: location.pathname === '/reports' },
-        { path: '/feedback', label: 'Feedback', icon: 'rate_review', active: location.pathname === '/feedback' },
+        { path: '/complaints', label: 'Complaints', icon: 'report_problem', active: location.pathname === '/complaints' },
+        { path: addPromotionPath, label: 'Add Promotion', icon: 'local_offer', active: location.pathname.startsWith('/add-promotion') },
     ];
 
     return (
@@ -32,7 +66,7 @@ const SDStaffSidebar = () => {
             <div className="px-6 py-5 border-b border-gray-100 bg-blue-50">
                 <p className="text-xs font-medium text-blue-600 uppercase tracking-widest">CURRENT CANTEEN</p>
                 <p className="font-semibold text-gray-800 mt-1">
-                    {selectedCanteenId ? "Assigned Canteen" : "No canteen selected"}
+                    {currentCanteen?.name || (selectedCanteenId ? 'Assigned Canteen' : 'No canteen selected')}
                 </p>
             </div>
 
@@ -68,7 +102,10 @@ const SDStaffSidebar = () => {
                     </div>
                 </div>
 
-                <button className="mt-8 w-full py-3 text-sm font-medium text-red-600 hover:bg-red-50 rounded-2xl transition flex items-center justify-center gap-2">
+                <button
+                    onClick={handleLogout}
+                    className="mt-8 w-full py-3 text-sm font-medium text-red-600 hover:bg-red-50 rounded-2xl transition flex items-center justify-center gap-2"
+                >
                     <span className="material-symbols-outlined">logout</span>
                     Logout
                 </button>

@@ -4,11 +4,11 @@ import mongoose from 'mongoose';
 // Submit new complaint
 export const submitComplaint = async (req, res) => {
   try {
-    const { name, email, userType, category, subject, description, issueDate, priority } = req.body;
+    const { name, email, userType, canteen, category, subject, description, issueDate, priority } = req.body;
     const photo = req.file ? req.file.path : null;
 
     // Validate required fields
-    if (!name || !email || !userType || !category || !subject || !description || !issueDate || !priority) {
+    if (!name || !email || !userType || !canteen || !category || !subject || !description || !issueDate || !priority) {
       return res.status(400).json({
         success: false,
         message: 'All required fields must be filled'
@@ -38,6 +38,7 @@ export const submitComplaint = async (req, res) => {
       name,
       email,
       userType,
+      canteen,
       category,
       subject,
       description,
@@ -68,13 +69,14 @@ export const submitComplaint = async (req, res) => {
 // Get all complaints (admin)
 export const getAllComplaints = async (req, res) => {
   try {
-    const { category, status, priority } = req.query;
+    const { category, status, priority, canteen } = req.query;
     
     // Build filter object
     const filter = {};
     if (category) filter.category = category;
     if (status) filter.status = status;
     if (priority) filter.priority = priority;
+    if (canteen) filter.canteen = canteen;
 
     const complaints = await Complaint.find(filter).sort({ createdAt: -1 });
 

@@ -23,6 +23,18 @@ const complaintSchema = new mongoose.Schema({
     required: [true, 'User type is required'],
     enum: ['Student', 'Staff']
   },
+  canteen: {
+    type: String,
+    required: [true, 'Canteen is required'],
+    enum: [
+      'Main Canteen',
+      'Hostel Canteen',
+      'Mini Canteen',
+      'New Canteen',
+      'Basement Canteen',
+      'Anohana Canteen'
+    ]
+  },
   category: {
     type: String,
     required: [true, 'Category is required'],

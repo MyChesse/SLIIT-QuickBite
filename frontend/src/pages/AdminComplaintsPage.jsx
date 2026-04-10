@@ -2,8 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router';
 import { complaintAPI } from '../services/api.js';
 import { jsPDF } from 'jspdf';
-import 'jspdf-autotable';
-import html2canvas from 'html2canvas';
+import autoTable from 'jspdf-autotable';
+import AdminSidebar from '../components/AdminSidebar';
 
 const AdminComplaintsPage = () => {
   const navigate = useNavigate();
@@ -28,6 +28,147 @@ const AdminComplaintsPage = () => {
 
     setError('');
     setExporting(true);
+
+    try {
+      const doc = new jsPDF({ orientation: 'landscape' });
+      const generatedAt = new Date().toLocaleString();
+      const generatedDateForFile = new Date().toISOString().split('T')[0];
+
+      const pending = filteredComplaints.filter((c) => c.status === 'Pending').length;
+      const inReview = filteredComplaints.filter((c) => c.status === 'In Review').length;
+      const resolved = filteredComplaints.filter((c) => c.status === 'Resolved').length;
+      const rejected = filteredComplaints.filter((c) => c.status === 'Rejected').length;
+
+      const activeFilters = [
+        filters.category ? `Category: ${filters.category}` : null,
+        filters.status ? `Status: ${filters.status}` : null,
+        filters.priority ? `Priority: ${filters.priority}` : null
+      ].filter(Boolean);
+
+      doc.setFillColor(238, 244, 255);
+      doc.rect(0, 0, 297, 38, 'F');
+
+      doc.setDrawColor(0, 86, 210);
+      doc.setLineWidth(0.6);
+      doc.line(14, 34, 283, 34);
+
+      doc.setFont('times', 'bold');
+      doc.setFontSize(20);
+      doc.setTextColor(15, 23, 42);
+      doc.text('SLIIT QuickBite', 14, 14);
+
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(11);
+      doc.setTextColor(71, 85, 105);
+      doc.text('Complaint Management Report', 14, 22);
+      doc.text(`Generated: ${generatedAt}`, 14, 29);
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(10);
+      doc.setTextColor(30, 58, 138);
+      doc.text('CONFIDENTIAL - INTERNAL USE ONLY', 283, 14, { align: 'right' });
+
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(51, 65, 85);
+      doc.text(`Total Records: ${filteredComplaints.length}`, 283, 22, { align: 'right' });
+
+      doc.setFillColor(248, 250, 252);
+      doc.roundedRect(14, 40, 269, 18, 2, 2, 'F');
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(10);
+      doc.setTextColor(15, 23, 42);
+      doc.text(`Pending: ${pending}`, 20, 51);
+      doc.text(`In Review: ${inReview}`, 78, 51);
+      doc.text(`Resolved: ${resolved}`, 148, 51);
+      doc.text(`Rejected: ${rejected}`, 216, 51);
+
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(51, 65, 85);
+      const filterText = activeFilters.length > 0 ? activeFilters.join(' | ') : 'No filters applied';
+      doc.text(`Filters: ${filterText}`, 14, 65);
+
+      const rows = filteredComplaints.map((complaint) => [
+        complaint.complaintId || '-',
+        complaint.subject || '-',
+        complaint.name || '-',
+        complaint.email || '-',
+        complaint.canteen || '-',
+        complaint.category || '-',
+        complaint.priority || '-',
+        complaint.status || '-',
+        complaint.issueDate ? new Date(complaint.issueDate).toLocaleDateString() : '-',
+        complaint.createdAt ? new Date(complaint.createdAt).toLocaleDateString() : '-'
+      ]);
+
+      const startY = 70;
+
+      autoTable(doc, {
+        startY,
+        head: [[
+          'Complaint ID',
+          'Subject',
+          'Name',
+          'Email',
+          'Canteen',
+          'Category',
+          'Priority',
+          'Status',
+          'Issue Date',
+          'Submitted'
+        ]],
+        body: rows,
+        styles: {
+          font: 'helvetica',
+          fontSize: 8,
+          cellPadding: 2.4,
+          lineColor: [226, 232, 240],
+          lineWidth: 0.1,
+          textColor: [30, 41, 59],
+          valign: 'middle'
+        },
+        headStyles: {
+          fillColor: [15, 23, 42],
+          textColor: [255, 255, 255],
+          fontStyle: 'bold'
+        },
+        alternateRowStyles: {
+          fillColor: [248, 250, 252]
+        },
+        columnStyles: {
+          0: { cellWidth: 24 },
+          1: { cellWidth: 46 },
+          2: { cellWidth: 24 },
+          3: { cellWidth: 48 },
+          4: { cellWidth: 24 },
+          5: { cellWidth: 22 },
+          6: { cellWidth: 18 },
+          7: { cellWidth: 18 },
+          8: { cellWidth: 18 },
+          9: { cellWidth: 18 }
+        },
+        didDrawPage: (data) => {
+          const pageCount = doc.internal.getNumberOfPages();
+          const pageHeight = doc.internal.pageSize.getHeight();
+
+          doc.setDrawColor(203, 213, 225);
+          doc.setLineWidth(0.2);
+          doc.line(14, pageHeight - 10, 283, pageHeight - 10);
+
+          doc.setFont('helvetica', 'normal');
+          doc.setFontSize(8);
+          doc.setTextColor(100, 116, 139);
+          doc.text('QuickBite Admin Complaint Report', 14, pageHeight - 5.5);
+          doc.text(`Page ${data.pageNumber} of ${pageCount}`, 283, pageHeight - 5.5, { align: 'right' });
+        }
+      });
+
+      doc.save(`admin-complaints-report-${generatedDateForFile}.pdf`);
+    } catch (err) {
+      console.error('Failed to generate complaints PDF:', err);
+      setError('Failed to generate PDF report. Please try again.');
+    } finally {
+      setExporting(false);
+    }
 
   };
 
@@ -136,63 +277,7 @@ const AdminComplaintsPage = () => {
   const inReviewCount = complaints.filter((item) => item.status === 'In Review').length;
   const highPriorityCount = complaints.filter((item) => item.priority === 'High').length;
 
-  const sidebarButtonClass = 'w-full flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-slate-600 hover:bg-slate-50 transition';
-  const sidebarActiveClass = 'w-full flex items-center gap-3 rounded-xl bg-blue-50 text-blue-700 px-4 py-3 text-sm font-semibold';
-
-  const renderSidebar = (activePage) => (
-    <aside className="hidden lg:flex w-[250px] flex-col bg-white border-r border-slate-200 px-5 py-6">
-      <div className="mb-8">
-        <div className="flex items-center gap-3">
-          <div className="w-11 h-11 rounded-xl bg-blue-600 flex items-center justify-center text-white text-lg font-bold shadow-sm">
-            🎓
-          </div>
-          <div>
-            <h2 className="text-[28px] leading-none font-bold text-blue-900">Admin Portal</h2>
-            <p className="text-[11px] font-semibold tracking-[0.12em] uppercase text-slate-500 mt-1">
-              Canteen Management
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <nav className="space-y-2">
-        <button onClick={() => navigate('/admin/dashboard')} className={activePage === 'users' ? sidebarActiveClass : sidebarButtonClass}>
-          <span className="text-base">👥</span>
-          <span>User Management</span>
-        </button>
-
-        <button onClick={() => navigate('/admin/complaints')} className={activePage === 'complaints' ? sidebarActiveClass : sidebarButtonClass}>
-          <span className="text-base">⚠️</span>
-          <span>Complaint Management</span>
-        </button>
-
-        <button onClick={() => navigate('/admin/feedback')} className={activePage === 'feedback' ? sidebarActiveClass : sidebarButtonClass}>
-          <span className="text-base">💬</span>
-          <span>Feedback Management</span>
-        </button>
-
-        <button onClick={() => navigate('/admin/promotions')} className={activePage === 'promotions' ? sidebarActiveClass : sidebarButtonClass}>
-          <span className="text-base">🍽️</span>
-          <span>Promotion Management</span>
-        </button>
-
-        <button onClick={() => navigate('/admin/inventory')} className={activePage === 'inventory' ? sidebarActiveClass : sidebarButtonClass}>
-          <span className="text-base">📦</span>
-          <span>Inventory</span>
-        </button>
-
-        <button className={sidebarButtonClass}>
-          <span className="text-base">🛒</span>
-          <span>Orders</span>
-        </button>
-
-        <button className={sidebarButtonClass}>
-          <span className="text-base">📊</span>
-          <span>Analytics</span>
-        </button>
-      </nav>
-    </aside>
-  );
+  const renderSidebar = (activePage) => <AdminSidebar activePage={activePage} />;
 
   if (loading) {
     return (
@@ -250,7 +335,16 @@ const AdminComplaintsPage = () => {
         <div className="mt-6 rounded-3xl border border-slate-200 bg-white/95 p-5 shadow-[0_20px_55px_-38px_rgba(15,23,42,0.35)] sm:p-6">
           <div className="mb-3 flex items-center justify-between gap-3">
             <h2 className="text-lg font-semibold text-slate-900">Filters</h2>
-            <p className="text-sm text-[#475569]">{filteredComplaints.length} showing</p>
+            <div className="flex items-center gap-3">
+              <p className="text-sm text-[#475569]">{filteredComplaints.length} showing</p>
+              <button
+                onClick={handleExportPDF}
+                disabled={exporting || filteredComplaints.length === 0}
+                className="rounded-xl bg-[#0056D2] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#0a4cb1] disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {exporting ? 'Generating...' : 'Export PDF'}
+              </button>
+            </div>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

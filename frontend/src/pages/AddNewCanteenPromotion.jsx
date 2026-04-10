@@ -1,7 +1,14 @@
 import React from 'react';
+import { useLocation } from 'react-router-dom';
 import PromotionForm from '../components/PromotionForm';
+import StaffSidebarLayout from '../components/StaffSidebarLayout';
+import AdminSidebarLayout from '../components/AdminSidebarLayout';
 
 const AddNewCanteenPromotion = () => {
+  const location = useLocation();
+  const isStaffRoute = location.pathname.startsWith('/add-promotion');
+  const isAdminRoute = location.pathname.startsWith('/admin/promotions');
+
   const handleSubmit = async (promotionData) => {
     const response = await fetch('http://localhost:5001/api/promotions', {
       method: 'POST',
@@ -17,16 +24,26 @@ const AddNewCanteenPromotion = () => {
     }
   };
 
-  return (
+  const content = (
     <section className="rounded-[2rem] border border-slate-200 bg-white p-8 shadow-[0_30px_70px_-30px_rgba(15,23,42,0.08)]">
       <div className="mb-8">
-        <p className="text-xs uppercase tracking-[0.35em] text-primary font-semibold">New Canteen</p>
+        <p className="text-xs uppercase tracking-[0.35em] text-primary font-semibold">Main Canteen</p>
         <h1 className="mt-3 text-4xl font-extrabold text-slate-950">Add Promotion</h1>
-        <p className="mt-3 max-w-2xl text-sm text-slate-500">Fill in the promotion details below to create a fresh, modern offer for the New Canteen.</p>
+        <p className="mt-3 max-w-2xl text-sm text-slate-500">Fill in the promotion details below to create a fresh, modern offer for the Main Canteen.</p>
       </div>
-      <PromotionForm canteenName="New canteen" onSubmit={handleSubmit} />
+      <PromotionForm canteenName="Main Canteen" onSubmit={handleSubmit} />
     </section>
   );
+
+  if (isStaffRoute) {
+    return <StaffSidebarLayout>{content}</StaffSidebarLayout>;
+  }
+
+  if (isAdminRoute) {
+    return <AdminSidebarLayout activePage="promotions">{content}</AdminSidebarLayout>;
+  }
+
+  return content;
 };
 
 export default AddNewCanteenPromotion;

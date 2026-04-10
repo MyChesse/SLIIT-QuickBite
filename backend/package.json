@@ -4,7 +4,9 @@
   "main": "src/server.js",
   "scripts": {
     "dev": "nodemon src/server.js",
-    "start": "node src/server.js"
+    "start": "node src/server.js",
+    "backfill:complaints:canteen": "node src/scripts/backfillComplaintCanteen.js",
+    "backfill:complaints:canteen:apply": "node src/scripts/backfillComplaintCanteen.js --apply"
   },
   "type": "module",
   "keywords": [],

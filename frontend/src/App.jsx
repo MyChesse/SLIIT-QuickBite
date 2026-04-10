@@ -19,6 +19,10 @@ import DailyPromotions from './pages/DailyPromotions';
 import AddNewCanteenPromotion from './pages/AddNewCanteenPromotion';
 import AddBasementCanteenPromotion from './pages/AddBasementCanteenPromotion';
 import AddAnohanaCanteenPromotion from './pages/AddAnohanaCanteenPromotion';
+import StaffOrdersPage from './pages/StaffOrdersPage';
+import StaffReportsPage from './pages/StaffReportsPage';
+import StaffPromotionSelection from './pages/StaffPromotionSelection';
+import StaffCanteenComplaintsPage from './pages/StaffCanteenComplaintsPage';
 import CanteenSelection from './pages/CanteenSelection';
 import SupportPage from './pages/SupportPage.jsx';
 import AdminFeedbackPage from './pages/AdminFeedbackPage.jsx';
@@ -39,6 +43,62 @@ const App = () => {
           element={
             <StaffProtectedRoute>
               <SDInventoryPage />
+            </StaffProtectedRoute>
+          }
+        />
+        <Route
+          path="/complaints"
+          element={
+            <StaffProtectedRoute>
+              <StaffCanteenComplaintsPage />
+            </StaffProtectedRoute>
+          }
+        />
+        <Route
+          path="/orders"
+          element={
+            <StaffProtectedRoute>
+              <StaffOrdersPage />
+            </StaffProtectedRoute>
+          }
+        />
+        <Route
+          path="/reports"
+          element={
+            <StaffProtectedRoute>
+              <StaffReportsPage />
+            </StaffProtectedRoute>
+          }
+        />
+        <Route
+          path="/add-promotion"
+          element={
+            <StaffProtectedRoute>
+              <StaffPromotionSelection />
+            </StaffProtectedRoute>
+          }
+        />
+        <Route
+          path="/add-promotion/new-canteen"
+          element={
+            <StaffProtectedRoute>
+              <AddNewCanteenPromotion />
+            </StaffProtectedRoute>
+          }
+        />
+        <Route
+          path="/add-promotion/basement-canteen"
+          element={
+            <StaffProtectedRoute>
+              <AddBasementCanteenPromotion />
+            </StaffProtectedRoute>
+          }
+        />
+        <Route
+          path="/add-promotion/anohana-canteen"
+          element={
+            <StaffProtectedRoute>
+              <AddAnohanaCanteenPromotion />
             </StaffProtectedRoute>
           }
         />

@@ -7,6 +7,21 @@ const DailyPromotions = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const normalizeCanteenName = (canteenName) => {
+    switch ((canteenName || '').trim()) {
+      case 'New canteen':
+      case 'New Canteen':
+        return 'Main Canteen';
+      case 'Basement canteen':
+      case 'Basement Canteen':
+        return 'Hostel Canteen';
+      case 'Anohana Canteen':
+        return 'Mini Canteen';
+      default:
+        return canteenName || 'Unknown';
+    }
+  };
+
   useEffect(() => {
     fetchTodaysPromotions();
   }, []);
@@ -32,7 +47,7 @@ const DailyPromotions = () => {
 
   // Group promotions by canteen
   const groupedPromotions = promotions.reduce((acc, promotion) => {
-    const canteen = promotion.canteenName || 'Unknown';
+    const canteen = normalizeCanteenName(promotion.canteenName);
     if (!acc[canteen]) acc[canteen] = [];
     acc[canteen].push(promotion);
     return acc;
@@ -40,24 +55,24 @@ const DailyPromotions = () => {
 
   const canteenSections = [
     {
-      key: 'New canteen',
-      title: 'New Canteen',
+      key: 'Main Canteen',
+      title: 'Main Canteen',
       subtitle: "Today's modern highlights",
       badge: 'New',
       emptyIcon: 'restaurant_menu',
       reverse: false
     },
     {
-      key: 'Basement canteen',
-      title: 'Basement Canteen',
+      key: 'Hostel Canteen',
+      title: 'Hostel Canteen',
       subtitle: 'Comfort-focused favorites',
       badge: 'Classic',
       emptyIcon: 'shopping_basket',
       reverse: true
     },
     {
-      key: 'Anohana Canteen',
-      title: 'Anohana Canteen',
+      key: 'Mini Canteen',
+      title: 'Mini Canteen',
       subtitle: 'Refined signature picks',
       badge: 'Today',
       emptyIcon: 'restaurant',

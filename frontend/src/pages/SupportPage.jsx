@@ -1,15 +1,23 @@
 import React, { useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import FeedbackForm from '../components/FeedbackForm.jsx';
 import ComplaintForm from '../components/ComplaintForm.jsx';
 import SDHeader from '../components/SDHeader';
+import StaffSidebarLayout from '../components/StaffSidebarLayout';
 
 const SupportPage = () => {
-  const [activeTab, setActiveTab] = useState('feedback');
+  const location = useLocation();
+  const isStaffComplaintsRoute = location.pathname === '/complaints';
+  const [activeTab, setActiveTab] = useState(() => {
+    if (location.state?.tab === 'complaint') {
+      return 'complaint';
+    }
 
-  return (
-    <div className="relative overflow-hidden bg-slate-50">
-      <SDHeader />
-      <div className="mx-auto w-full max-w-6xl px-4 pb-16 pt-28 sm:px-6 lg:px-8">
+    return location.pathname.includes('/complaints') ? 'complaint' : 'feedback';
+  });
+
+  const supportContent = (
+    <div className="mx-auto w-full max-w-6xl px-4 pb-16 pt-8 sm:px-6 lg:px-8">
         <div className="rounded-3xl border border-[#0056D2]/20 bg-white/85 p-6 shadow-[0_24px_70px_-38px_rgba(0,86,210,0.55)] backdrop-blur-sm sm:p-8">
           <div className="grid gap-8 lg:grid-cols-[1.1fr_1fr] lg:items-center">
             <div className="space-y-4">
@@ -89,6 +97,20 @@ const SupportPage = () => {
           </div>
         </div>
       </div>
+  );
+
+  if (isStaffComplaintsRoute) {
+    return (
+      <StaffSidebarLayout contentClassName="py-0">
+        <div className="bg-slate-50 min-h-screen">{supportContent}</div>
+      </StaffSidebarLayout>
+    );
+  }
+
+  return (
+    <div className="relative overflow-hidden bg-slate-50">
+      <SDHeader />
+      <div className="pt-20">{supportContent}</div>
     </div>
   );
 };

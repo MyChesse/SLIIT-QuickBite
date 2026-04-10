@@ -4,7 +4,7 @@ import { complaintAPI } from '../services/api.js';
 
 const ComplaintForm = () => {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({
+  const getDefaultFormData = () => ({
     name: '',
     email: '',
     userType: 'Student',
@@ -15,6 +15,8 @@ const ComplaintForm = () => {
     issueDate: new Date().toISOString().split('T')[0],
     priority: 'Medium'
   });
+
+  const [formData, setFormData] = useState(getDefaultFormData);
 
   const [photoFile, setPhotoFile] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -124,6 +126,8 @@ const ComplaintForm = () => {
     setLoading(true);
     try {
       const response = await complaintAPI.submitComplaint(formData, photoFile);
+      setFormData(getDefaultFormData());
+      setPhotoFile(null);
       setSuccess(`Complaint submitted successfully! Your complaint ID is: ${response.data.complaintId}`);
       // Redirect back to support page after a short delay
       setTimeout(() => {

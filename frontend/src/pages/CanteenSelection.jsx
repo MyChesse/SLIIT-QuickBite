@@ -11,18 +11,18 @@ const CanteenSelection = () => {
   };
 
   const canteenVisuals = {
-    'New Canteen': {
-      tag: 'New Building',
+    'Main Canteen': {
+      tag: 'Basement Building',
       image:
         'https://images.unsplash.com/photo-1542834369-f10ebf06d3e0?auto=format&fit=crop&w=1200&q=80'
     },
-    'Basement Canteen': {
-      tag: 'Main Building',
+    'Hostel Canteen': {
+      tag: 'Hostel Block',
       image:
         'https://images.unsplash.com/photo-1552566626-52f8b828add9?auto=format&fit=crop&w=1200&q=80'
     },
-    'Anohana Canteen': {
-      tag: 'Anohana In front of the business school',
+    'Mini Canteen': {
+      tag: 'Faculty Area',
       image:
         'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=1200&q=80'
     }
@@ -30,24 +30,27 @@ const CanteenSelection = () => {
 
   const canteens = [
     {
-      name: 'New Canteen',
-      description: 'Add promotions for the New Canteen',
+      name: 'Main Canteen',
+      description: 'Add promotions for the Main Canteen',
       route: '/admin/promotions/new-canteen',
       icon: '🏫'
     },
     {
-      name: 'Basement Canteen',
-      description: 'Add promotions for the Basement Canteen',
+      name: 'Hostel Canteen',
+      description: 'Add promotions for the Hostel Canteen',
       route: '/admin/promotions/basement-canteen',
       icon: '🏢'
     },
     {
-      name: 'Anohana Canteen',
-      description: 'Add promotions for the Anohana Canteen',
+      name: 'Mini Canteen',
+      description: 'Add promotions for the Mini Canteen',
       route: '/admin/promotions/anohana-canteen',
       icon: '🌸'
     }
   ];
+
+  const sidebarButtonClass = 'flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-slate-600 transition hover:bg-slate-50';
+  const sidebarActiveClass = 'flex w-full items-center gap-3 rounded-xl bg-blue-50 px-4 py-3 text-sm font-semibold text-blue-700';
 
   return (
     <div className="min-h-screen bg-[#eef2f8] text-slate-950">
@@ -70,28 +73,47 @@ const CanteenSelection = () => {
           <nav className="space-y-2">
             <button
               onClick={() => navigate('/admin/dashboard')}
-              className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
+              className={sidebarButtonClass}
             >
               <span className="text-base">👥</span>
               <span>User Management</span>
             </button>
 
-            <button className="flex w-full items-center gap-3 rounded-xl bg-blue-50 px-4 py-3 text-sm font-semibold text-blue-700">
+            <button
+              onClick={() => navigate('/admin/complaints')}
+              className={sidebarButtonClass}
+            >
+              <span className="text-base">⚠️</span>
+              <span>Complaint Management</span>
+            </button>
+
+            <button
+              onClick={() => navigate('/admin/feedback')}
+              className={sidebarButtonClass}
+            >
+              <span className="text-base">💬</span>
+              <span>Feedback Management</span>
+            </button>
+
+            <button className={sidebarActiveClass}>
               <span className="text-base">🍽️</span>
               <span>Promotion Management</span>
             </button>
 
-            <button className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-slate-600 transition hover:bg-slate-50">
+            <button
+              onClick={() => navigate('/admin/inventory')}
+              className={sidebarButtonClass}
+            >
               <span className="text-base">📦</span>
               <span>Inventory</span>
             </button>
 
-            <button className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-slate-600 transition hover:bg-slate-50">
+            <button className={sidebarButtonClass}>
               <span className="text-base">🛒</span>
               <span>Orders</span>
             </button>
 
-            <button className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-slate-600 transition hover:bg-slate-50">
+            <button className={sidebarButtonClass}>
               <span className="text-base">📊</span>
               <span>Analytics</span>
             </button>
