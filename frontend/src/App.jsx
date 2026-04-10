@@ -1,173 +1,158 @@
-import React, { useState } from 'react';
-import { BrowserRouter, Routes, Route, Link, useLocation } from 'react-router';
-import MenuPage from './components/MenuPage.jsx';
-import CartPage from './components/CartPage.jsx';
-import BookingPage from './components/BookingPage.jsx';
-import OrderStatusPage from './components/OrderStatusPage.jsx';
-import './App.css';
+import React from "react";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { Toaster } from "react-hot-toast";
 
-const AppContent = () => {
-  const [cart, setCart] = useState([]);
-  const location = useLocation();
+// 🔥 CART CONTEXT (IMPORTANT ADDITION)
+import { CartProvider } from "./context/CartContext";
 
-  const addToCart = (item) => {
-    const existingItem = cart.find(cartItem => cartItem.id === item.id);
+// Components
+import Navbar from "./components/Navbar";
+import ProtectedRoute from "./components/ProtectedRoute";
+import AdminProtectedRoute from "./components/AdminProtectedRoute";
+import StaffProtectedRoute from "./components/StaffProtectedRoute";
 
-    if (existingItem) {
-      setCart(cart.map(cartItem =>
-        cartItem.id === item.id
-          ? { ...cartItem, quantity: cartItem.quantity + 1 }
-          : cartItem
-      ));
-    } else {
-      setCart([...cart, { ...item, quantity: 1 }]);
-    }
-    console.log('Item added to cart:', item.name);
-  };
+// Pages
+import SDInventoryPage from "./pages/SDInventoryPage";
+import SDMenuPage from "./pages/SDMenuPage";
+import Register from "./pages/Register";
+import Login from "./pages/Login";
+import UserDashboard from "./pages/UserDashboard";
+import Profile from "./pages/Profile";
+import AdminDashboard from "./pages/AdminDashboard";
+import DailyPromotions from "./pages/DailyPromotions";
+import AddNewCanteenPromotion from "./pages/AddNewCanteenPromotion";
+import AddBasementCanteenPromotion from "./pages/AddBasementCanteenPromotion";
+import AddAnohanaCanteenPromotion from "./pages/AddAnohanaCanteenPromotion";
+import CanteenSelection from "./pages/CanteenSelection";
+import SupportPage from "./pages/SupportPage.jsx";
+import AdminFeedbackPage from "./pages/AdminFeedbackPage.jsx";
+import AdminComplaintsPage from "./pages/AdminComplaintsPage.jsx";
 
-  const removeFromCart = (itemId) => {
-    setCart(cart.filter(item => item.id !== itemId));
-  };
-
-  const updateQuantity = (itemId, quantity) => {
-    if (quantity <= 0) {
-      removeFromCart(itemId);
-    } else {
-      setCart(cart.map(item =>
-        item.id === itemId ? { ...item, quantity } : item
-      ));
-    }
-  };
-
-  const clearCart = () => {
-    setCart([]);
-  };
-
-  const cartCount = cart.reduce((total, item) => total + item.quantity, 0);
-
-  return (
-    <div style={styles.app}>
-      <nav style={styles.navbar}>
-        <div style={styles.navContainer}>
-          <Link to="/" style={styles.logo}>
-            🍽️ University Canteen
-          </Link>
-          <ul style={styles.navMenu}>
-            <li style={styles.navItem}>
-              <Link to="/" style={{...styles.navLink, ...(location.pathname === '/' ? styles.active : {})}}>
-                Menu
-              </Link>
-            </li>
-            <li style={styles.navItem}>
-              <Link to="/cart" style={{...styles.navLink, ...(location.pathname === '/cart' ? styles.active : {})}}>
-                Cart {cartCount > 0 && `(${cartCount})`}
-              </Link>
-            </li>
-            <li style={styles.navItem}>
-              <Link to="/booking" style={{...styles.navLink, ...(location.pathname === '/booking' ? styles.active : {})}}>
-                Booking
-              </Link>
-            </li>
-            <li style={styles.navItem}>
-              <Link to="/order-status" style={{...styles.navLink, ...(location.pathname === '/order-status' ? styles.active : {})}}>
-                Order Status
-              </Link>
-            </li>
-          </ul>
-        </div>
-      </nav>
-
-      <main style={styles.mainContent}>
-        <Routes>
-          <Route path="/" element={<MenuPage cart={cart} addToCart={addToCart} />} />
-          <Route path="/cart" element={<CartPage cart={cart} removeFromCart={removeFromCart} updateQuantity={updateQuantity} />} />
-          <Route path="/booking" element={<BookingPage cart={cart} clearCart={clearCart} />} />
-          <Route path="/order-status" element={<OrderStatusPage />} />
-        </Routes>
-      </main>
-
-      <footer style={styles.footer}>
-        <p>&copy; 2026 University Canteen  Management System</p>
-      </footer>
-    </div>
-  );
-};
+// 🛒 NEW PAGES (MAKE SURE THESE EXIST)
+import CartPage from "./components/CartPage";
+import BookingPage from "./components/BookingPage";
+import OrderStatusPage from "./components/OrderStatusPage";
+import MenuPage from "./components/MenuPage.jsx";
 
 const App = () => {
-  return (
-    <BrowserRouter>
-      <AppContent />
-    </BrowserRouter>
-  );
-};
+  const location = useLocation();
 
-const styles = {
-  app: {
-    minHeight: '100vh',
-    backgroundColor: '#f8f9fa',
-    display: 'flex',
-    flexDirection: 'column'
-  },
-  navbar: {
-    backgroundColor: '#ffffff',
-    padding: '1rem 0',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-    position: 'sticky',
-    top: 0,
-    zIndex: 100
-  },
-  navContainer: {
-    maxWidth: '1200px',
-    margin: '0 auto',
-    padding: '0 20px',
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center'
-  },
-  logo: {
-    fontSize: '24px',
-    fontWeight: 'bold',
-    color: '#1e40af',
-    textDecoration: 'none',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px'
-  },
-  navMenu: {
-    display: 'flex',
-    listStyle: 'none',
-    gap: '2rem',
-    margin: 0,
-    padding: 0
-  },
-  navItem: {
-    margin: 0
-  },
-  navLink: {
-    color: '#6b7280',
-    textDecoration: 'none',
-    fontSize: '16px',
-    fontWeight: '500',
-    transition: 'color 0.3s'
-  },
-  active: {
-    color: '#1e40af',
-    borderBottom: '2px solid #1e40af'
-  },
-  mainContent: {
-    flex: 1,
-    maxWidth: '1200px',
-    margin: '0 auto',
-    width: '100%',
-    padding: '40px 20px'
-  },
-  footer: {
-    backgroundColor: '#2d3748',
-    color: '#ffffff',
-    textAlign: 'center',
-    padding: '20px',
-    marginTop: 'auto'
-  }
+  // hide navbar in admin promotions pages
+  const hideNavbar = location.pathname.startsWith("/admin/promotions");
+
+  return (
+    <CartProvider>
+      <div>
+        {!hideNavbar && <Navbar />}
+
+        <Routes>
+          {/* PUBLIC ROUTES */}
+          <Route path="/register" element={<Register />} />
+          <Route path="/login" element={<Login />} />
+
+          {/* STUDENT MENU */}
+          <Route path="/menu" element={<SDMenuPage />} />
+
+          {/* 🛒 CART FLOW (NEW IMPORTANT ROUTES) */}
+          <Route path="/cart" element={<CartPage />} />
+          <Route path="/booking" element={<BookingPage />} />
+          <Route path="/order-status" element={<OrderStatusPage />} />
+          <Route path="/menu2" element={<MenuPage />} />
+
+          {/* STAFF ROUTES */}
+          <Route
+            path="/inventory"
+            element={
+              <StaffProtectedRoute>
+                <SDInventoryPage />
+              </StaffProtectedRoute>
+            }
+          />
+
+          {/* USER ROUTES */}
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <UserDashboard />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* ADMIN ROUTES */}
+          <Route
+            path="/admin/dashboard"
+            element={
+              <AdminProtectedRoute>
+                <AdminDashboard />
+              </AdminProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/admin/promotions"
+            element={
+              <AdminProtectedRoute>
+                <CanteenSelection />
+              </AdminProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/admin/promotions/new-canteen"
+            element={
+              <AdminProtectedRoute>
+                <AddNewCanteenPromotion />
+              </AdminProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/admin/promotions/basement-canteen"
+            element={
+              <AdminProtectedRoute>
+                <AddBasementCanteenPromotion />
+              </AdminProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/admin/promotions/anohana-canteen"
+            element={
+              <AdminProtectedRoute>
+                <AddAnohanaCanteenPromotion />
+              </AdminProtectedRoute>
+            }
+          />
+
+          {/* SUPPORT */}
+          <Route path="/support" element={<SupportPage />} />
+          <Route path="/admin/feedback" element={<AdminFeedbackPage />} />
+          <Route path="/admin/complaints" element={<AdminComplaintsPage />} />
+
+          {/* PROMOTIONS */}
+          <Route path="/promotions" element={<DailyPromotions />} />
+
+          {/* DEFAULT */}
+          <Route path="/" element={<Navigate to="/login" replace />} />
+
+          {/* 404 */}
+          <Route path="*" element={<Navigate to="/login" replace />} />
+        </Routes>
+
+        <Toaster position="top-right" />
+      </div>
+    </CartProvider>
+  );
 };
 
 export default App;
