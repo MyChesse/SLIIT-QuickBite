@@ -74,7 +74,7 @@ const SDHeader = () => {
           {/* Pending Orders - Only for authenticated users */}
           {isAuthenticated && (
             <Link
-              to="/orders"
+              to="/order-status"
               className="relative flex items-center gap-2 px-4 py-2 hover:bg-gray-100 rounded-2xl transition"
             >
               <span className="material-symbols-outlined text-2xl text-gray-600">
@@ -132,7 +132,7 @@ const SDHeader = () => {
                     <span className="font-medium">Profile</span>
                   </Link>
                   <Link
-                    to="/orders"
+                    to="/order-status"
                     className="flex items-center gap-3 px-5 py-3 hover:bg-gray-50 text-gray-700"
                   >
                     <span className="material-symbols-outlined text-xl">

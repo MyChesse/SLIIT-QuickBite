@@ -37,8 +37,11 @@ import MenuPage from "./components/MenuPage.jsx";
 const App = () => {
   const location = useLocation();
 
-  // hide navbar in admin promotions pages
-  const hideNavbar = location.pathname.startsWith("/admin/promotions");
+  // hide navbar in selected routes
+  const hideNavbarRoutes = ["/cart", "/booking", "/order-status"];
+  const hideNavbar =
+    location.pathname.startsWith("/admin/promotions") ||
+    hideNavbarRoutes.includes(location.pathname);
 
   return (
     <CartProvider>

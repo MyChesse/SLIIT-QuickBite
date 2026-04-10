@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { useLocation, useNavigate } from "react-router";
-import axios from "axios";
-
-const API_BASE = "http://localhost:5001";
+import { useLocation, useNavigate } from "react-router-dom";
+import api from "../services/api";
 
 /** Mongo/API may expose _id as string or an object with toString() */
 const normalizeOrderId = (id) => {
@@ -15,6 +13,12 @@ const normalizeOrderId = (id) => {
 const OrderStatusPage = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [cancelTargetId, setCancelTargetId] = useState("");
+  const [popup, setPopup] = useState({
+    open: false,
+    type: "success",
+    message: "",
+  });
   const location = useLocation();
   const navigate = useNavigate();
   const orderId = location.state?.orderId;
@@ -27,7 +31,7 @@ const OrderStatusPage = () => {
   const fetchOrders = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`${API_BASE}/orders`);
+      const response = await api.get("/orders");
       // Filter out cancelled orders immediately
       setOrders(response.data.filter((order) => order.status !== "Cancelled"));
     } catch (error) {
@@ -107,30 +111,50 @@ const OrderStatusPage = () => {
     );
   };
 
-  const handleCancelOrder = async (id) => {
-    if (!window.confirm("Are you sure you want to cancel this order?")) return;
-
-    const orderId = normalizeOrderId(id);
-    if (!orderId) {
-      alert("Invalid order id.");
+  const handleCancelOrder = (id) => {
+    const normalized = normalizeOrderId(id);
+    if (!normalized) {
+      setPopup({
+        open: true,
+        type: "error",
+        message: "Invalid order id.",
+      });
       return;
     }
 
+    setCancelTargetId(normalized);
+  };
+
+  const closePopup = () => {
+    setPopup({ open: false, type: "success", message: "" });
+  };
+
+  const confirmCancelOrder = async () => {
+    if (!cancelTargetId) return;
+
     try {
-      await axios.put(
-        `${API_BASE}/orders/${encodeURIComponent(orderId)}/cancel`,
-      );
+      await api.put(`/orders/${encodeURIComponent(cancelTargetId)}/cancel`);
       setOrders((prev) =>
-        prev.filter((order) => normalizeOrderId(order._id) !== orderId),
+        prev.filter((order) => normalizeOrderId(order._id) !== cancelTargetId),
       );
-      alert("Order cancelled successfully!");
+      setPopup({
+        open: true,
+        type: "success",
+        message: "Order cancelled successfully.",
+      });
     } catch (error) {
       console.error("Error cancelling order:", error);
       const msg =
         error.response?.data?.message ||
         error.response?.data?.error ||
         error.message;
-      alert(msg || "Failed to cancel the order. Please try again.");
+      setPopup({
+        open: true,
+        type: "error",
+        message: msg || "Failed to cancel the order. Please try again.",
+      });
+    } finally {
+      setCancelTargetId("");
     }
   };
 
@@ -221,7 +245,7 @@ const OrderStatusPage = () => {
           <div style={styles.noOrders}>
             <div style={styles.emptyIcon}>🛒</div>
             <p>No orders found yet</p>
-            <button style={styles.shopButton} onClick={() => navigate("/")}>
+            <button style={styles.shopButton} onClick={() => navigate("/menu")}>
               Start Shopping
             </button>
           </div>
@@ -294,10 +318,66 @@ const OrderStatusPage = () => {
         <button style={styles.refreshButton} onClick={fetchOrders}>
           🔄 Refresh Orders
         </button>
+        <button style={styles.menuButton} onClick={() => navigate("/menu")}>
+          🍽️ Go to Menu
+        </button>
         <button style={styles.backButton} onClick={() => navigate("/")}>
           🛍️ Continue Shopping
         </button>
       </div>
+
+      {cancelTargetId && (
+        <div style={styles.modalOverlay}>
+          <div style={styles.modalCard}>
+            <h3 style={styles.modalTitle}>Cancel This Order?</h3>
+            <p style={styles.modalText}>
+              This action will remove the order from your active list.
+            </p>
+            <div style={styles.modalActions}>
+              <button
+                style={styles.modalCancelButton}
+                onClick={() => setCancelTargetId("")}
+              >
+                Keep Order
+              </button>
+              <button
+                style={styles.modalConfirmButton}
+                onClick={confirmCancelOrder}
+              >
+                Yes, Cancel Order
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {popup.open && (
+        <div style={styles.modalOverlay}>
+          <div style={styles.modalCard}>
+            <h3
+              style={{
+                ...styles.modalTitle,
+                color: popup.type === "success" ? "#166534" : "#991b1b",
+              }}
+            >
+              {popup.type === "success" ? "Success" : "Something went wrong"}
+            </h3>
+            <p style={styles.modalText}>{popup.message}</p>
+            <div style={styles.modalActionsSingle}>
+              <button
+                style={
+                  popup.type === "success"
+                    ? styles.modalSuccessCloseButton
+                    : styles.modalErrorCloseButton
+                }
+                onClick={closePopup}
+              >
+                OK
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
@@ -422,6 +502,16 @@ const styles = {
     fontSize: "16px",
     fontWeight: "600",
   },
+  menuButton: {
+    backgroundColor: "#0ea5e9",
+    color: "white",
+    border: "none",
+    padding: "12px 24px",
+    borderRadius: "8px",
+    cursor: "pointer",
+    fontSize: "16px",
+    fontWeight: "600",
+  },
   backButton: {
     backgroundColor: "#1e40af",
     color: "white",
@@ -478,6 +568,84 @@ const styles = {
     gap: "12px",
     justifyContent: "center",
     marginTop: "30px",
+  },
+  modalOverlay: {
+    position: "fixed",
+    inset: 0,
+    backgroundColor: "rgba(15, 23, 42, 0.55)",
+    backdropFilter: "blur(2px)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 1000,
+    padding: "16px",
+  },
+  modalCard: {
+    width: "100%",
+    maxWidth: "440px",
+    backgroundColor: "#ffffff",
+    borderRadius: "16px",
+    padding: "24px",
+    boxShadow: "0 18px 40px rgba(15, 23, 42, 0.25)",
+  },
+  modalTitle: {
+    margin: "0 0 10px 0",
+    fontSize: "24px",
+    fontWeight: "800",
+    color: "#1f2937",
+  },
+  modalText: {
+    margin: 0,
+    color: "#475569",
+    fontSize: "15px",
+    lineHeight: 1.6,
+  },
+  modalActions: {
+    display: "flex",
+    gap: "10px",
+    justifyContent: "flex-end",
+    marginTop: "18px",
+  },
+  modalActionsSingle: {
+    display: "flex",
+    justifyContent: "flex-end",
+    marginTop: "18px",
+  },
+  modalCancelButton: {
+    border: "1px solid #cbd5e1",
+    backgroundColor: "#ffffff",
+    color: "#334155",
+    borderRadius: "10px",
+    padding: "10px 14px",
+    fontWeight: "600",
+    cursor: "pointer",
+  },
+  modalConfirmButton: {
+    border: "none",
+    backgroundColor: "#dc2626",
+    color: "#ffffff",
+    borderRadius: "10px",
+    padding: "10px 14px",
+    fontWeight: "700",
+    cursor: "pointer",
+  },
+  modalSuccessCloseButton: {
+    border: "none",
+    backgroundColor: "#16a34a",
+    color: "#ffffff",
+    borderRadius: "10px",
+    padding: "10px 18px",
+    fontWeight: "700",
+    cursor: "pointer",
+  },
+  modalErrorCloseButton: {
+    border: "none",
+    backgroundColor: "#dc2626",
+    color: "#ffffff",
+    borderRadius: "10px",
+    padding: "10px 18px",
+    fontWeight: "700",
+    cursor: "pointer",
   },
 };
 

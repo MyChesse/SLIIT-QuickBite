@@ -51,17 +51,9 @@ const SDMenuPage = () => {
       item.name.toLowerCase().includes(searchTerm.toLowerCase()),
     );
 
-  // 👉 FIXED ORDER BUTTON FLOW
   const handleOrderClick = (item) => {
     addToCart(item);
-
-    // 🚀 instead of login page → go to order status
-    navigate("/order-status", {
-      state: {
-        fromMenu: true,
-        item,
-      },
-    });
+    navigate("/cart");
   };
 
   return (
@@ -121,11 +113,7 @@ const SDMenuPage = () => {
             <p>Loading...</p>
           ) : (
             filteredItems.map((item) => (
-              <SDMenuItemCard
-                key={item._id}
-                item={item}
-                addToCart={handleOrderClick} // 🔥 FIX HERE
-              />
+              <SDMenuItemCard key={item._id} item={item} />
             ))
           )}
         </div>

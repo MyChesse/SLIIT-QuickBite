@@ -1,7 +1,10 @@
-import React from "react";
-import { useNavigate } from "react-router";
+import React, { useContext } from "react";
+import { useNavigate } from "react-router-dom";
+import { CartContext } from "../context/CartContext";
 
-const CartPage = ({ cart, removeFromCart, updateQuantity, clearCart }) => {
+const CartPage = () => {
+  const { cart, removeFromCart, updateQuantity, clearCart } =
+    useContext(CartContext);
   const navigate = useNavigate();
 
   const styles = {
@@ -191,7 +194,7 @@ const CartPage = ({ cart, removeFromCart, updateQuantity, clearCart }) => {
             style={styles.button}
             onMouseEnter={(e) => (e.target.style.backgroundColor = "#1e3a8a")}
             onMouseLeave={(e) => (e.target.style.backgroundColor = "#1e40af")}
-            onClick={() => navigate("/")}
+            onClick={() => navigate("/menu")}
           >
             Continue Shopping
           </button>

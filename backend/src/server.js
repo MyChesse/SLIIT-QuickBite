@@ -9,6 +9,7 @@ import feedbackRoutes from "./routes/feedbackRoutes.js";
 import complaintRoutes from "./routes/complaintRoutes.js";
 import SDinventoryRoutes from "./routes/SDinventoryRoutes.js";
 import SDcanteenRoutes from "./routes/SDcanteenRoutes.js";
+import orderRoutes from "./routes/orderRoutes.js";
 import authRoutes from "./routes/auth.js";
 import adminRoutes from "./routes/admin.js";
 import errorHandler from "./middleware/errorHandler.js";
@@ -50,6 +51,8 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/promotions", promotionRoutes);
 app.use("/api/feedback", feedbackRoutes);
 app.use("/api/complaints", complaintRoutes);
+app.use("/orders", orderRoutes);
+app.use("/api/orders", orderRoutes);
 
 // Health check route
 app.get("/api/health", (req, res) => {

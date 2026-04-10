@@ -1,14 +1,19 @@
-import { useState } from "react";
+import { useContext, useState } from "react";
 import toast from "react-hot-toast";
+import { CartContext } from "../context/CartContext";
 
-const SDMenuItemCard = ({ item }) => {
+const SDMenuItemCard = ({ item, addToCart: addToCartProp }) => {
   const [isAdded, setIsAdded] = useState(false);
+  const { addToCart: addToCartFromContext } = useContext(CartContext);
 
   const handleAddToCart = () => {
     if (!item.isAvailable || item.currentStock <= 0) {
       toast.error("This item is currently unavailable");
       return;
     }
+
+    const addToCart = addToCartProp || addToCartFromContext;
+    addToCart(item);
 
     setIsAdded(true);
     toast.success(`${item.name} added to cart!`);
