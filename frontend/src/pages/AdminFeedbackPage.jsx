@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router';
 import { feedbackAPI } from '../services/api.js';
 
 const AdminFeedbackPage = () => {
+  const navigate = useNavigate();
   const [feedbackList, setFeedbackList] = useState([]);
   const [filteredFeedback, setFilteredFeedback] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -85,6 +87,64 @@ const AdminFeedbackPage = () => {
   const { total, averageRating, feedbackTypes } = getSummary();
   const topType = Object.entries(feedbackTypes).sort((a, b) => b[1] - a[1])[0];
 
+  const sidebarButtonClass = 'w-full flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-slate-600 hover:bg-slate-50 transition';
+  const sidebarActiveClass = 'w-full flex items-center gap-3 rounded-xl bg-blue-50 text-blue-700 px-4 py-3 text-sm font-semibold';
+
+  const renderSidebar = (activePage) => (
+    <aside className="hidden lg:flex w-[250px] flex-col bg-white border-r border-slate-200 px-5 py-6">
+      <div className="mb-8">
+        <div className="flex items-center gap-3">
+          <div className="w-11 h-11 rounded-xl bg-blue-600 flex items-center justify-center text-white text-lg font-bold shadow-sm">
+            🎓
+          </div>
+          <div>
+            <h2 className="text-[28px] leading-none font-bold text-blue-900">Admin Portal</h2>
+            <p className="text-[11px] font-semibold tracking-[0.12em] uppercase text-slate-500 mt-1">
+              Canteen Management
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <nav className="space-y-2">
+        <button onClick={() => navigate('/admin/dashboard')} className={activePage === 'users' ? sidebarActiveClass : sidebarButtonClass}>
+          <span className="text-base">👥</span>
+          <span>User Management</span>
+        </button>
+
+        <button onClick={() => navigate('/admin/complaints')} className={activePage === 'complaints' ? sidebarActiveClass : sidebarButtonClass}>
+          <span className="text-base">⚠️</span>
+          <span>Complaint Management</span>
+        </button>
+
+        <button onClick={() => navigate('/admin/feedback')} className={activePage === 'feedback' ? sidebarActiveClass : sidebarButtonClass}>
+          <span className="text-base">💬</span>
+          <span>Feedback Management</span>
+        </button>
+
+        <button onClick={() => navigate('/admin/promotions')} className={activePage === 'promotions' ? sidebarActiveClass : sidebarButtonClass}>
+          <span className="text-base">🍽️</span>
+          <span>Promotion Management</span>
+        </button>
+
+        <button onClick={() => navigate('/admin/inventory')} className={activePage === 'inventory' ? sidebarActiveClass : sidebarButtonClass}>
+          <span className="text-base">📦</span>
+          <span>Inventory</span>
+        </button>
+
+        <button className={sidebarButtonClass}>
+          <span className="text-base">🛒</span>
+          <span>Orders</span>
+        </button>
+
+        <button className={sidebarButtonClass}>
+          <span className="text-base">📊</span>
+          <span>Analytics</span>
+        </button>
+      </nav>
+    </aside>
+  );
+
   const getRatingBadgeClass = (rating) => {
     if (rating >= 4) {
       return 'bg-emerald-50 text-emerald-700 border border-emerald-200';
@@ -99,17 +159,26 @@ const AdminFeedbackPage = () => {
 
   if (loading) {
     return (
-      <div className="mx-auto w-full max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-        <div className="rounded-3xl border border-[#0056D2]/20 bg-white/90 p-10 text-center text-[#475569] shadow-[0_24px_60px_-38px_rgba(0,86,210,0.5)]">
-          Loading feedback...
+      <div className="min-h-screen bg-[#f5f7fb] text-slate-800">
+        <div className="flex min-h-screen">
+          {renderSidebar('feedback')}
+          <main className="flex-1 px-4 py-12 sm:px-6 lg:px-8">
+            <div className="mx-auto w-full max-w-7xl rounded-3xl border border-[#0056D2]/20 bg-white/90 p-10 text-center text-[#475569] shadow-[0_24px_60px_-38px_rgba(0,86,210,0.5)]">
+              Loading feedback...
+            </div>
+          </main>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="relative overflow-hidden px-4 pb-16 pt-8 sm:px-6 lg:px-8">
-      <div className="mx-auto w-full max-w-7xl">
+    <div className="min-h-screen bg-[#f5f7fb] text-slate-800">
+      <div className="flex min-h-screen">
+        {renderSidebar('feedback')}
+
+        <main className="relative flex-1 overflow-hidden px-4 pb-16 pt-8 sm:px-6 lg:px-8">
+          <div className="mx-auto w-full max-w-7xl">
         <div className="rounded-3xl border border-[#0056D2]/20 bg-white/90 p-6 shadow-[0_26px_75px_-42px_rgba(0,86,210,0.52)] backdrop-blur-sm sm:p-8">
           <div className="grid gap-6 lg:grid-cols-[1.2fr_1fr] lg:items-center">
             <div>
@@ -236,6 +305,8 @@ const AdminFeedbackPage = () => {
             ))
           )}
         </div>
+          </div>
+        </main>
       </div>
     </div>
   );

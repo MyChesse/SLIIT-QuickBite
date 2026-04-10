@@ -1,9 +1,8 @@
 import React from 'react';
-import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 
 // Components
-import Navbar from './components/Navbar';
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminProtectedRoute from './components/AdminProtectedRoute';
 import StaffProtectedRoute from './components/StaffProtectedRoute';
@@ -24,14 +23,11 @@ import CanteenSelection from './pages/CanteenSelection';
 import SupportPage from './pages/SupportPage.jsx';
 import AdminFeedbackPage from './pages/AdminFeedbackPage.jsx';
 import AdminComplaintsPage from './pages/AdminComplaintsPage.jsx';
+import AdminInventoryPage from './pages/AdminInventoryPage.jsx';
 
 const App = () => {
-  const location = useLocation();
-  const hideNavbar = location.pathname.startsWith('/admin/promotions');
-
   return (
     <div>
-      {!hideNavbar && <Navbar />}
       <Routes>
         {/* Public Routes */}
         <Route path="/register" element={<Register />} />
@@ -112,8 +108,30 @@ const App = () => {
 
         {/* Support and admin pages */}
         <Route path="/support" element={<SupportPage />} />
-        <Route path="/admin/feedback" element={<AdminFeedbackPage />} />
-        <Route path="/admin/complaints" element={<AdminComplaintsPage />} />
+        <Route
+          path="/admin/feedback"
+          element={
+            <AdminProtectedRoute>
+              <AdminFeedbackPage />
+            </AdminProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/complaints"
+          element={
+            <AdminProtectedRoute>
+              <AdminComplaintsPage />
+            </AdminProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/inventory"
+          element={
+            <AdminProtectedRoute>
+              <AdminInventoryPage />
+            </AdminProtectedRoute>
+          }
+        />
 
         {/* Promotions */}
         <Route path="/promotions" element={<DailyPromotions />} />

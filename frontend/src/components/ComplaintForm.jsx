@@ -8,7 +8,7 @@ const ComplaintForm = () => {
     name: '',
     email: '',
     userType: 'Student',
-    canteen: 'Canteen 3',
+    canteen: 'Main Canteen',
     category: 'Food issue',
     subject: '',
     description: '',
@@ -218,10 +218,9 @@ const ComplaintForm = () => {
             onChange={handleChange}
             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 bg-white"
           >
-            <option value="Choose the Canteen">Choose the Canteen</option>
-            <option value="ABC">ABC</option>
-            <option value="BCD">BCD</option>
-            <option value="STU">STU</option>
+            <option value="Main Canteen">Main Canteen • Basement Building</option>
+            <option value="Hostel Canteen">Hostel Canteen • Hostel Block</option>
+            <option value="Mini Canteen">Mini Canteen • Faculty Area</option>
           </select>
         </div>
 

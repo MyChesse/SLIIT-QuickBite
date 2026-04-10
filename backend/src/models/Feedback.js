@@ -17,6 +17,11 @@ const feedbackSchema = new mongoose.Schema({
     required: [true, 'User type is required'],
     enum: ['Student', 'Staff']
   },
+  canteen: {
+    type: String,
+    required: [true, 'Canteen is required'],
+    trim: true
+  },
   feedbackType: {
     type: String,
     required: [true, 'Feedback type is required'],

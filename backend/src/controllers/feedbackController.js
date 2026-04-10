@@ -4,10 +4,10 @@ import mongoose from 'mongoose';
 // Submit new feedback
 export const submitFeedback = async (req, res) => {
   try {
-    const { name, email, userType, feedbackType, message, rating } = req.body;
+    const { name, email, userType, canteen, feedbackType, message, rating } = req.body;
 
     // Validate required fields
-    if (!name || !email || !userType || !feedbackType || !message || !rating) {
+    if (!name || !email || !userType || !canteen || !feedbackType || !message || !rating) {
       return res.status(400).json({
         success: false,
         message: 'All fields are required'
@@ -36,6 +36,7 @@ export const submitFeedback = async (req, res) => {
       name,
       email,
       userType,
+      canteen,
       feedbackType,
       message,
       rating: parseInt(rating)
@@ -60,13 +61,14 @@ export const submitFeedback = async (req, res) => {
 // Get all feedback (admin)
 export const getAllFeedback = async (req, res) => {
   try {
-    const { feedbackType, rating, userType } = req.query;
+    const { feedbackType, rating, userType, canteen } = req.query;
     
     // Build filter object
     const filter = {};
     if (feedbackType) filter.feedbackType = feedbackType;
     if (rating) filter.rating = parseInt(rating);
     if (userType) filter.userType = userType;
+    if (canteen) filter.canteen = canteen;
 
     const feedback = await Feedback.find(filter).sort({ createdAt: -1 });
 
