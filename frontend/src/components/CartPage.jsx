@@ -315,7 +315,7 @@ const CartPage = () => {
           onMouseLeave={(e) => (e.target.style.backgroundColor = "#ef4444")}
           onClick={() => {
             clearCart();
-            navigate("/");
+            navigate("/menu");
           }}
         >
           Clear Cart
