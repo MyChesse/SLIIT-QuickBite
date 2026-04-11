@@ -22,7 +22,13 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    console.error("API Error:", error);
+    const status = error?.response?.status;
+    const url = error?.config?.url || "unknown-url";
+    if (status) {
+      console.error(`API Error ${status} at ${url}`);
+    } else {
+      console.error(`API Error at ${url}`);
+    }
     return Promise.reject(error);
   },
 );

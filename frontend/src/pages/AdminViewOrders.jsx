@@ -70,7 +70,10 @@ const AdminViewOrders = () => {
 
       setOrders(orderList);
     } catch (error) {
-      console.error("Failed to load orders:", error);
+      const status = error?.response?.status;
+      console.error(
+        `Failed to load orders${status ? ` (HTTP ${status})` : ""}`,
+      );
       toast.error(getErrorMessage(error, "Failed to load orders"));
     } finally {
       if (showLoader) {
@@ -380,16 +383,13 @@ const AdminViewOrders = () => {
 
         <section className="bg-[#f8fafc] border border-slate-200 rounded-2xl p-4">
           <h2 className="text-sm font-bold text-slate-700 mb-3">
-            Completed + Cancelled (
-            {grouped.completed.length + grouped.cancelled.length})
+            Completed ({grouped.completed.length})
           </h2>
           <div className="space-y-3">
-            {grouped.completed.concat(grouped.cancelled).length > 0 ? (
-              grouped.completed.concat(grouped.cancelled).map(renderOrderCard)
+            {grouped.completed.length > 0 ? (
+              grouped.completed.map(renderOrderCard)
             ) : (
-              <p className="text-sm text-slate-500">
-                No completed or cancelled orders.
-              </p>
+              <p className="text-sm text-slate-500">No completed orders.</p>
             )}
           </div>
         </section>
