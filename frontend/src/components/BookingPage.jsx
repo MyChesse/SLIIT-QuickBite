@@ -21,6 +21,14 @@ const BookingPage = () => {
 
   const today = new Date().toISOString().split("T")[0];
 
+  const formatStudentName = (value) =>
+    value
+      .trim()
+      .split(/\s+/)
+      .filter(Boolean)
+      .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+      .join(" ");
+
   const handleStudentIdChange = (e) => {
     const raw = e.target.value.toUpperCase();
     const withoutPrefix = raw.startsWith("IT") ? raw.slice(2) : raw;
@@ -56,8 +64,8 @@ const BookingPage = () => {
     }
 
     const selected = new Date(`${pickupDate}T${pickupTime}`);
-    if (selected < new Date()) {
-      setError("Pickup time cannot be in the past.");
+    if (selected <= new Date()) {
+      setError("Pickup time must be a future time.");
       return false;
     }
 
@@ -67,13 +75,16 @@ const BookingPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    const normalizedName = formatStudentName(studentName);
+    setStudentName(normalizedName);
+
     if (!validateForm()) return;
 
     setLoading(true);
 
     try {
       const orderData = {
-        studentName,
+        studentName: normalizedName,
         studentId: `IT${studentIdDigits}`,
         items: cart.map((item) => ({
           name: item.name,
@@ -189,6 +200,9 @@ const BookingPage = () => {
                   placeholder="Enter your full name"
                   value={studentName}
                   onChange={(e) => setStudentName(e.target.value)}
+                  onBlur={(e) =>
+                    setStudentName(formatStudentName(e.target.value))
+                  }
                   className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none transition focus:border-sky-500"
                   required
                 />
