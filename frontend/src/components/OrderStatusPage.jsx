@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { jsPDF } from "jspdf";
+import autoTable from "jspdf-autotable";
 import api from "../services/api";
 
 /** Mongo/API may expose _id as string or an object with toString() */
@@ -10,9 +12,46 @@ const normalizeOrderId = (id) => {
   return String(id);
 };
 
+const formatMoney = (value) =>
+  `Rs. ${Number(value || 0).toLocaleString("en-LK", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
+
+const formatDateTime = (value) => {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return "-";
+  }
+
+  return date.toLocaleString("en-LK", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  });
+};
+
+const formatDateOnly = (value) => {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return "-";
+  }
+
+  return date.toLocaleDateString("en-LK", {
+    dateStyle: "medium",
+  });
+};
+
+const sanitizeFileName = (value) =>
+  String(value || "receipt")
+    .replace(/[^a-z0-9-_]+/gi, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "")
+    .toLowerCase();
+
 const OrderStatusPage = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [receiptLoadingId, setReceiptLoadingId] = useState("");
   const [cancelTargetId, setCancelTargetId] = useState("");
   const [completeTargetId, setCompleteTargetId] = useState("");
   const [popup, setPopup] = useState({
@@ -84,6 +123,200 @@ const OrderStatusPage = () => {
         return "❌";
       default:
         return "📦";
+    }
+  };
+
+  const downloadReceipt = async (order) => {
+    const normalizedId = normalizeOrderId(order?._id);
+
+    if (!normalizedId) {
+      setPopup({
+        open: true,
+        type: "error",
+        message: "Invalid order selected for receipt download.",
+      });
+      return;
+    }
+
+    if (order.status !== "Completed") {
+      setPopup({
+        open: true,
+        type: "error",
+        message: "The receipt will be available after the order is completed.",
+      });
+      return;
+    }
+
+    try {
+      setReceiptLoadingId(normalizedId);
+
+      const doc = new jsPDF();
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const margin = 14;
+      const contentWidth = pageWidth - margin * 2;
+      const generatedOn = new Date();
+      const receiptId = `QB-${normalizedId.slice(-8).toUpperCase()}`;
+      const itemRows = (order.items || []).map((item, index) => [
+        String(index + 1),
+        item.name,
+        String(item.quantity),
+        formatMoney(item.price),
+        formatMoney(item.price * item.quantity),
+      ]);
+
+      doc.setFillColor(15, 23, 42);
+      doc.rect(0, 0, pageWidth, 32, "F");
+      doc.setTextColor(255, 255, 255);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(22);
+      doc.text("QuickBite Receipt", margin, 18);
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "normal");
+      doc.text("Official order receipt", margin, 25);
+
+      doc.setTextColor(15, 23, 42);
+      doc.setFontSize(12);
+      doc.setFont("helvetica", "bold");
+      doc.text("Receipt Details", margin, 44);
+
+      doc.setDrawColor(203, 213, 225);
+      doc.setFillColor(248, 250, 252);
+      doc.roundedRect(margin, 48, contentWidth, 36, 4, 4, "FD");
+
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "bold");
+      doc.text("Receipt No:", margin + 6, 58);
+      doc.setFont("helvetica", "normal");
+      doc.text(receiptId, margin + 34, 58);
+
+      doc.setFont("helvetica", "bold");
+      doc.text("Order ID:", margin + 6, 66);
+      doc.setFont("helvetica", "normal");
+      doc.text(normalizedId, margin + 34, 66);
+
+      doc.setFont("helvetica", "bold");
+      doc.text("Status:", pageWidth - 72, 58);
+      doc.setFont("helvetica", "normal");
+      doc.text(order.status, pageWidth - 48, 58);
+
+      doc.setFont("helvetica", "bold");
+      doc.text("Generated:", pageWidth - 72, 66);
+      doc.setFont("helvetica", "normal");
+      doc.text(formatDateTime(generatedOn), pageWidth - 44, 66);
+
+      doc.setTextColor(15, 23, 42);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(12);
+      doc.text("Customer Details", margin, 96);
+
+      doc.setDrawColor(226, 232, 240);
+      doc.setFillColor(255, 255, 255);
+      doc.roundedRect(margin, 100, contentWidth, 44, 4, 4, "FD");
+
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "bold");
+      doc.text("Name:", margin + 6, 110);
+      doc.text("Student ID:", margin + 6, 118);
+      doc.text("Pickup Date:", margin + 6, 126);
+      doc.text("Pickup Time:", margin + 6, 134);
+
+      doc.setFont("helvetica", "normal");
+      doc.text(String(order.studentName || "-"), margin + 28, 110);
+      doc.text(String(order.studentId || "-"), margin + 28, 118);
+      doc.text(formatDateOnly(order.pickupDate), margin + 28, 126);
+      doc.text(String(order.pickupTime || "-"), margin + 28, 134);
+
+      doc.setFont("helvetica", "bold");
+      doc.text("Order Items", margin, 158);
+
+      autoTable(doc, {
+        startY: 162,
+        head: [["#", "Item", "Qty", "Unit Price", "Line Total"]],
+        body: itemRows.length
+          ? itemRows
+          : [["-", "No items found", "-", "-", "-"]],
+        styles: {
+          font: "helvetica",
+          fontSize: 10,
+          cellPadding: 3,
+          textColor: [30, 41, 59],
+          lineColor: [226, 232, 240],
+          lineWidth: 0.1,
+        },
+        headStyles: {
+          fillColor: [15, 23, 42],
+          textColor: [255, 255, 255],
+          fontStyle: "bold",
+        },
+        alternateRowStyles: {
+          fillColor: [248, 250, 252],
+        },
+        columnStyles: {
+          0: { cellWidth: 10 },
+          1: { cellWidth: 78 },
+          2: { halign: "center", cellWidth: 18 },
+          3: { halign: "right", cellWidth: 36 },
+          4: { halign: "right", cellWidth: 36 },
+        },
+      });
+
+      const finalY = doc.lastAutoTable?.finalY || 162;
+      const summaryY = finalY + 10;
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(12);
+      doc.text("Payment Summary", margin, summaryY);
+
+      doc.setDrawColor(226, 232, 240);
+      doc.setFillColor(248, 250, 252);
+      doc.roundedRect(margin, summaryY + 4, contentWidth, 28, 4, 4, "FD");
+
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "bold");
+      doc.text("Total Amount", margin + 6, summaryY + 16);
+      doc.setFont("helvetica", "normal");
+      doc.text(
+        formatMoney(order.total),
+        pageWidth - margin - 6,
+        summaryY + 16,
+        {
+          align: "right",
+        },
+      );
+
+      doc.setFont("helvetica", "bold");
+      doc.text("Status", margin + 6, summaryY + 24);
+      doc.setFont("helvetica", "normal");
+      doc.text(
+        String(order.status || "-"),
+        pageWidth - margin - 6,
+        summaryY + 24,
+        {
+          align: "right",
+        },
+      );
+
+      doc.setFontSize(9);
+      doc.setTextColor(100, 116, 139);
+      doc.text(
+        "Thank you for choosing QuickBite. Please keep this receipt for pickup verification.",
+        pageWidth / 2,
+        pageHeight - 14,
+        { align: "center" },
+      );
+
+      const fileName = `quickbite-receipt-${sanitizeFileName(normalizedId)}.pdf`;
+      doc.save(fileName);
+    } catch (error) {
+      console.error("Error generating receipt:", error);
+      setPopup({
+        open: true,
+        type: "error",
+        message: "Failed to generate the receipt PDF. Please try again.",
+      });
+    } finally {
+      setReceiptLoadingId("");
     }
   };
 
@@ -238,6 +471,31 @@ const OrderStatusPage = () => {
     (o) => normalizeOrderId(o._id) === normalizeOrderId(orderId),
   );
 
+  const renderReceiptAction = (order) => {
+    const normalizedId = normalizeOrderId(order?._id);
+    const isCompleted = order?.status === "Completed";
+
+    if (!isCompleted) {
+      return (
+        <div style={styles.receiptNote}>
+          Receipt will be available after the order is completed.
+        </div>
+      );
+    }
+
+    return (
+      <button
+        style={styles.receiptButton}
+        onClick={() => downloadReceipt(order)}
+        disabled={receiptLoadingId === normalizedId}
+      >
+        {receiptLoadingId === normalizedId
+          ? "Generating Receipt..."
+          : "⬇️ Download Receipt PDF"}
+      </button>
+    );
+  };
+
   return (
     <div style={styles.container}>
       <div style={styles.header}>
@@ -295,6 +553,10 @@ const OrderStatusPage = () => {
             <div style={styles.statusSection}>
               <h4 style={styles.subTitle}>🔄 Status Flow:</h4>
               <OrderStatusFlow status={currentOrder.status} />
+            </div>
+
+            <div style={styles.receiptSection}>
+              {renderReceiptAction(currentOrder)}
             </div>
           </div>
         </div>
@@ -366,6 +628,10 @@ const OrderStatusPage = () => {
                 <div style={styles.statusSection}>
                   <h4 style={styles.subTitle}>Status Flow:</h4>
                   <OrderStatusFlow status={order.status} />
+                </div>
+
+                <div style={styles.receiptSection}>
+                  {renderReceiptAction(order)}
                 </div>
 
                 {(order.status === "Pending" ||
@@ -595,6 +861,32 @@ const styles = {
   },
   orderInfo: { margin: 0, fontSize: "14px", color: "#6b7280" },
   statusSection: { marginTop: "20px" },
+  receiptSection: {
+    marginTop: "18px",
+    display: "flex",
+    justifyContent: "flex-start",
+  },
+  receiptButton: {
+    border: "none",
+    background:
+      "linear-gradient(135deg, rgb(15, 23, 42) 0%, rgb(37, 99, 235) 100%)",
+    color: "white",
+    padding: "12px 18px",
+    borderRadius: "10px",
+    cursor: "pointer",
+    fontSize: "14px",
+    fontWeight: "700",
+    boxShadow: "0 10px 20px rgba(15, 23, 42, 0.18)",
+  },
+  receiptNote: {
+    padding: "12px 14px",
+    borderRadius: "10px",
+    backgroundColor: "#eff6ff",
+    border: "1px solid #bfdbfe",
+    color: "#1d4ed8",
+    fontSize: "13px",
+    fontWeight: "600",
+  },
   statusFlow: {
     display: "flex",
     alignItems: "center",
