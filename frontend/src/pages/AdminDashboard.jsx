@@ -7,7 +7,7 @@ import toast from 'react-hot-toast';
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
 
 const AdminDashboard = () => {
-  const { user, token } = useAuth();
+  const { user, token, logout } = useAuth();
   const navigate = useNavigate();
   const [summary, setSummary] = useState({});
   const [users, setUsers] = useState([]);
@@ -308,6 +308,12 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleLogout = () => {
+    logout();
+    toast.success('Logged out successfully');
+    navigate('/login');
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-[#f5f7fb] flex items-center justify-center px-4">
@@ -346,6 +352,22 @@ const AdminDashboard = () => {
               <span>User Management</span>
             </button>
 
+            <button
+              onClick={() => navigate('/admin/complaints')}
+              className="w-full flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-slate-600 hover:bg-slate-50 transition"
+            >
+              <span className="text-base">⚠️</span>
+              <span>Complaint Management</span>
+            </button>
+
+            <button
+              onClick={() => navigate('/admin/feedback')}
+              className="w-full flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-slate-600 hover:bg-slate-50 transition"
+            >
+              <span className="text-base">💬</span>
+              <span>Feedback Management</span>
+            </button>
+
             <button 
               onClick={() => navigate('/admin/promotions')}
               className="w-full flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-slate-600 hover:bg-slate-50 transition"
@@ -354,7 +376,10 @@ const AdminDashboard = () => {
               <span>Promotion Management</span>
             </button>
 
-            <button className="w-full flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-slate-600 hover:bg-slate-50 transition">
+            <button 
+              onClick={() => navigate('/admin/inventory')}
+              className="w-full flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-slate-600 hover:bg-slate-50 transition"
+            >
               <span className="text-base">📦</span>
               <span>Inventory</span>
             </button>
@@ -387,6 +412,13 @@ const AdminDashboard = () => {
 
             <button className="w-full mt-4 rounded-xl bg-blue-600 text-white text-sm font-semibold py-2.5 hover:bg-blue-700 transition">
               System Status
+            </button>
+
+            <button
+              onClick={handleLogout}
+              className="w-full mt-2 rounded-xl bg-red-500 text-white text-sm font-semibold py-2.5 hover:bg-red-600 transition"
+            >
+              Logout
             </button>
           </div>
         </aside>

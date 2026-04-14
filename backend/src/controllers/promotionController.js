@@ -1,5 +1,30 @@
 import Promotion from '../models/Promotion.js';
 
+const canteenAliases = {
+  'Main Canteen': ['Main Canteen', 'New canteen'],
+  'Hostel Canteen': ['Hostel Canteen', 'Basement canteen'],
+  'Mini Canteen': ['Mini Canteen', 'Anohana Canteen']
+};
+
+const normalizeCanteenName = (name) => {
+  const value = (name || '').trim();
+
+  if (!value) {
+    return value;
+  }
+
+  if (value === 'New canteen') return 'Main Canteen';
+  if (value === 'Basement canteen') return 'Hostel Canteen';
+  if (value === 'Anohana Canteen') return 'Mini Canteen';
+
+  return value;
+};
+
+const getCanteenQueryList = (name) => {
+  const normalized = normalizeCanteenName(name);
+  return canteenAliases[normalized] || [name];
+};
+
 // Get all promotions
 export const getAllPromotions = async (req, res) => {
   try {
@@ -14,7 +39,8 @@ export const getAllPromotions = async (req, res) => {
 export const getPromotionsByCanteen = async (req, res) => {
   try {
     const { canteenName } = req.params;
-    const promotions = await Promotion.find({ canteenName }).sort({ createdAt: -1 });
+    const canteenNames = getCanteenQueryList(canteenName);
+    const promotions = await Promotion.find({ canteenName: { $in: canteenNames } }).sort({ createdAt: -1 });
     res.status(200).json(promotions);
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
@@ -47,9 +73,10 @@ export const getTodaysPromotions = async (req, res) => {
 export const addPromotion = async (req, res) => {
   try {
     const { title, description, originalPrice, discountedPrice, promotionDate, canteenName, isAvailable, image } = req.body;
+    const normalizedCanteenName = normalizeCanteenName(canteenName);
 
     // Validation
-    if (!title || !description || !originalPrice || !discountedPrice || !promotionDate || !canteenName) {
+    if (!title || !description || !originalPrice || !discountedPrice || !promotionDate || !normalizedCanteenName) {
       return res.status(400).json({ message: 'All required fields must be provided' });
     }
 
@@ -61,8 +88,8 @@ export const addPromotion = async (req, res) => {
       return res.status(400).json({ message: 'Discounted price must be less than original price' });
     }
 
-    const validCanteens = ['New canteen', 'Basement canteen', 'Anohana Canteen'];
-    if (!validCanteens.includes(canteenName)) {
+    const validCanteens = ['Main Canteen', 'Hostel Canteen', 'Mini Canteen', 'New canteen', 'Basement canteen', 'Anohana Canteen'];
+    if (!validCanteens.includes(canteenName) && !validCanteens.includes(normalizedCanteenName)) {
       return res.status(400).json({ message: 'Invalid canteen name' });
     }
 
@@ -80,7 +107,7 @@ export const addPromotion = async (req, res) => {
       originalPrice,
       discountedPrice,
       promotionDate: promoDate,
-      canteenName,
+      canteenName: normalizedCanteenName,
       isAvailable: isAvailable !== undefined ? isAvailable : true,
       image
     });

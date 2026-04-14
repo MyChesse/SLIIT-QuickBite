@@ -28,7 +28,7 @@ const promotionSchema = new mongoose.Schema({
   canteenName: {
     type: String,
     required: true,
-    enum: ['New canteen', 'Basement canteen', 'Anohana Canteen']
+    enum: ['Main Canteen', 'Hostel Canteen', 'Mini Canteen', 'New canteen', 'Basement canteen', 'Anohana Canteen']
   },
   isAvailable: {
     type: Boolean,

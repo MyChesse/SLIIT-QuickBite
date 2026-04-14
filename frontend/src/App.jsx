@@ -29,6 +29,19 @@ const App = () => {
   return (
     <div>
       {!hideNavbar && <Navbar />}
+import StaffOrdersPage from './pages/StaffOrdersPage';
+import StaffReportsPage from './pages/StaffReportsPage';
+import StaffPromotionSelection from './pages/StaffPromotionSelection';
+import StaffCanteenComplaintsPage from './pages/StaffCanteenComplaintsPage';
+import CanteenSelection from './pages/CanteenSelection';
+import SupportPage from './pages/SupportPage.jsx';
+import AdminFeedbackPage from './pages/AdminFeedbackPage.jsx';
+import AdminComplaintsPage from './pages/AdminComplaintsPage.jsx';
+import AdminInventoryPage from './pages/AdminInventoryPage.jsx';
+
+const App = () => {
+  return (
+    <div>
       <Routes>
         {/* Public Routes */}
         <Route path="/register" element={<Register />} />
@@ -40,6 +53,62 @@ const App = () => {
           element={
             <StaffProtectedRoute>
               <SDInventoryPage />
+            </StaffProtectedRoute>
+          }
+        />
+        <Route
+          path="/complaints"
+          element={
+            <StaffProtectedRoute>
+              <StaffCanteenComplaintsPage />
+            </StaffProtectedRoute>
+          }
+        />
+        <Route
+          path="/orders"
+          element={
+            <StaffProtectedRoute>
+              <StaffOrdersPage />
+            </StaffProtectedRoute>
+          }
+        />
+        <Route
+          path="/reports"
+          element={
+            <StaffProtectedRoute>
+              <StaffReportsPage />
+            </StaffProtectedRoute>
+          }
+        />
+        <Route
+          path="/add-promotion"
+          element={
+            <StaffProtectedRoute>
+              <StaffPromotionSelection />
+            </StaffProtectedRoute>
+          }
+        />
+        <Route
+          path="/add-promotion/new-canteen"
+          element={
+            <StaffProtectedRoute>
+              <AddNewCanteenPromotion />
+            </StaffProtectedRoute>
+          }
+        />
+        <Route
+          path="/add-promotion/basement-canteen"
+          element={
+            <StaffProtectedRoute>
+              <AddBasementCanteenPromotion />
+            </StaffProtectedRoute>
+          }
+        />
+        <Route
+          path="/add-promotion/anohana-canteen"
+          element={
+            <StaffProtectedRoute>
+              <AddAnohanaCanteenPromotion />
             </StaffProtectedRoute>
           }
         />
@@ -111,6 +180,36 @@ const App = () => {
           }
         />
 
+        {/* Support and admin pages */}
+        <Route path="/support" element={<SupportPage />} />
+        <Route
+          path="/admin/feedback"
+          element={
+            <AdminProtectedRoute>
+              <AdminFeedbackPage />
+            </AdminProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/complaints"
+          element={
+            <AdminProtectedRoute>
+              <AdminComplaintsPage />
+            </AdminProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/inventory"
+          element={
+            <AdminProtectedRoute>
+              <AdminInventoryPage />
+            </AdminProtectedRoute>
+          }
+        />
+
+        {/* Promotions */}
+        <Route path="/promotions" element={<DailyPromotions />} />
+
         {/* Default Route */}
         <Route path="/" element={<Navigate to="/login" replace />} />
 
@@ -121,15 +220,5 @@ const App = () => {
     </div>
   );
 };
-
-
-
-  {/*const App = () => {
-  return (
-    <AuthProvider>
-      <AppContent />
-    </AuthProvider>
-  );
-};*/}
 
 export default App;

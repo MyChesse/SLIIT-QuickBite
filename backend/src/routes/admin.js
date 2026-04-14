@@ -1,6 +1,8 @@
 import express from 'express';
 import { protect, admin } from '../middleware/auth.js';
 import User from '../models/User.js';
+import MenuItem from '../models/SDMenuItem.js';
+import Canteen from '../models/SDCanteen.js';
 
 const router = express.Router();
 
@@ -235,8 +237,118 @@ router.get('/promotions-summary', protect, admin, (req, res) => {
   res.json({ activePromotions: 0, message: 'Promotions module not implemented yet' });
 });
 
-router.get('/inventory-summary', protect, admin, (req, res) => {
-  res.json({ totalItems: 0, message: 'Inventory module not implemented yet' });
+router.get('/inventory', protect, admin, async (req, res) => {
+  try {
+    const {
+      search,
+      canteenId,
+      availability = 'all',
+      stock = 'all',
+      page = 1,
+      limit = 12
+    } = req.query;
+
+    const parsedPage = Math.max(parseInt(page, 10) || 1, 1);
+    const parsedLimit = Math.max(parseInt(limit, 10) || 12, 1);
+
+    const query = {};
+
+    if (canteenId && canteenId !== 'all') {
+      query.canteenId = canteenId;
+    }
+
+    if (availability === 'available') {
+      query.isAvailable = true;
+    } else if (availability === 'unavailable') {
+      query.isAvailable = false;
+    }
+
+    if (stock === 'out') {
+      query.currentStock = 0;
+    } else if (stock === 'low') {
+      query.$expr = { $lt: ['$currentStock', '$lowStockThreshold'] };
+    }
+
+    if (search && search.trim()) {
+      query.$or = [
+        { name: { $regex: search.trim(), $options: 'i' } },
+        { category: { $regex: search.trim(), $options: 'i' } }
+      ];
+    }
+
+    const [items, totalItems, lowStockItems, outOfStockItems, totalStockValue, canteens] = await Promise.all([
+      MenuItem.find(query)
+        .populate('canteenId', 'name code')
+        .sort({ createdAt: -1 })
+        .skip((parsedPage - 1) * parsedLimit)
+        .limit(parsedLimit),
+      MenuItem.countDocuments(query),
+      MenuItem.countDocuments({ $expr: { $lt: ['$currentStock', '$lowStockThreshold'] } }),
+      MenuItem.countDocuments({ currentStock: 0 }),
+      MenuItem.aggregate([
+        {
+          $group: {
+            _id: null,
+            totalValue: {
+              $sum: { $multiply: ['$price', '$currentStock'] }
+            }
+          }
+        }
+      ]),
+      Canteen.find({ isActive: true }).select('name code')
+    ]);
+
+    res.json({
+      items,
+      canteens,
+      pagination: {
+        currentPage: parsedPage,
+        totalPages: Math.ceil(totalItems / parsedLimit),
+        totalItems,
+        hasNext: parsedPage * parsedLimit < totalItems,
+        hasPrev: parsedPage > 1
+      },
+      summary: {
+        totalItems,
+        lowStockItems,
+        outOfStockItems,
+        totalStockValue: totalStockValue[0]?.totalValue || 0
+      }
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+router.get('/inventory-summary', protect, admin, async (req, res) => {
+  try {
+    const [totalItems, lowStockItems, outOfStockItems, totalStockValue] = await Promise.all([
+      MenuItem.countDocuments(),
+      MenuItem.countDocuments({ $expr: { $lt: ['$currentStock', '$lowStockThreshold'] } }),
+      MenuItem.countDocuments({ currentStock: 0 }),
+      MenuItem.aggregate([
+        {
+          $group: {
+            _id: null,
+            totalValue: {
+              $sum: { $multiply: ['$price', '$currentStock'] }
+            }
+          }
+        }
+      ])
+    ]);
+
+    res.json({
+      totalItems,
+      lowStockItems,
+      outOfStockItems,
+      totalStockValue: totalStockValue[0]?.totalValue || 0
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
 });
 
 export default router;
