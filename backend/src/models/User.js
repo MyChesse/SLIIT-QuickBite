@@ -1,63 +1,62 @@
-import mongoose from "mongoose";
-import bcrypt from "bcryptjs";
+import mongoose from 'mongoose';
+import bcrypt from 'bcryptjs';
 
-const userSchema = new mongoose.Schema(
-  {
-    name: {
-      type: String,
-      required: [true, "Name is required"],
-      trim: true,
-    },
-    userId: {
-      type: String,
-      required: [true, "User ID is required"],
-      unique: true,
-      trim: true,
-    },
-    email: {
-      type: String,
-      required: [true, "Email is required"],
-      unique: true,
-      lowercase: true,
-      trim: true,
-      match: [
-        /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
-        "Please enter a valid email",
-      ],
-    },
-    password: {
-      type: String,
-      required: [true, "Password is required"],
-      minlength: [6, "Password must be at least 6 characters long"],
-    },
-    role: {
-      type: String,
-      enum: ["student", "staff", "admin"],
-      default: "student",
-    },
-    status: {
-      type: String,
-      enum: ["active", "suspended"],
-      default: "active",
-    },
-    lastLogin: {
-      type: Date,
-    },
-    assignedCanteens: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Canteen",
-      },
-    ],
+const userSchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: [true, 'Name is required'],
+    trim: true
   },
-  {
-    timestamps: true,
+  userId: {
+    type: String,
+    required: [true, 'User ID is required'],
+    unique: true,
+    trim: true
   },
-);
+  email: {
+    type: String,
+    required: [true, 'Email is required'],
+    unique: true,
+    lowercase: true,
+    trim: true,
+    match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, 'Please enter a valid email']
+  },
+  password: {
+    type: String,
+    required: [true, 'Password is required'],
+    minlength: [6, 'Password must be at least 6 characters long']
+  },
+  role: {
+    type: String,
+    enum: ['student', 'staff', 'admin'],
+    default: 'student'
+  },
+  status: {
+    type: String,
+    enum: ['active', 'suspended'],
+    default: 'active'
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now
+  },
+  lastLogin: {
+    type: Date
+  },
+  assignedCanteens: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Canteen'
+  }],
+
+  status: { type: String, enum: ['active', 'suspended'], default: 'active' },
+  createdAt: { type: Date, default: Date.now },
+  lastLogin: { type: Date }
+
+});
 
 // Hash password before saving
-userSchema.pre("save", async function (next) {
-  if (!this.isModified("password")) return next();
+userSchema.pre('save', async function(next) {
+  if (!this.isModified('password')) return next();
 
   try {
     const salt = await bcrypt.genSalt(10);
@@ -69,10 +68,10 @@ userSchema.pre("save", async function (next) {
 });
 
 // Compare password method
-userSchema.methods.comparePassword = async function (candidatePassword) {
+userSchema.methods.comparePassword = async function(candidatePassword) {
   return await bcrypt.compare(candidatePassword, this.password);
 };
 
-const User = mongoose.model("User", userSchema);
+const User = mongoose.model('User', userSchema);
 
 export default User;

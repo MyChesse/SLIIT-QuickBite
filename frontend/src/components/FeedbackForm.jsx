@@ -1,75 +1,77 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { feedbackAPI } from "../services/api.js";
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { feedbackAPI } from '../services/api.js';
 
 const FeedbackForm = () => {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    userType: "Student",
-    canteen: "Canteen 3",
-    feedbackType: "Food quality",
-    message: "",
-    rating: 5,
+  const getDefaultFormData = () => ({
+    name: '',
+    email: '',
+    userType: 'Student',
+    canteen: 'Main Canteen',
+    feedbackType: 'Food quality',
+    message: '',
+    rating: 5
   });
 
+  const [formData, setFormData] = useState(getDefaultFormData);
+
   const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState("");
-  const [error, setError] = useState("");
+  const [success, setSuccess] = useState('');
+  const [error, setError] = useState('');
   const [hoverRating, setHoverRating] = useState(0);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
 
-    if (name === "name" && value !== "" && !/^[A-Za-z\s]*$/.test(value)) {
+    if (name === 'name' && value !== '' && !/^[A-Za-z\s]*$/.test(value)) {
       return;
     }
 
-    const nextValue = name === "email" ? value.toLowerCase() : value;
+    const nextValue = name === 'email' ? value.toLowerCase() : value;
 
-    setFormData((prev) => ({
+    setFormData(prev => ({
       ...prev,
-      [name]: nextValue,
+      [name]: nextValue
     }));
   };
 
   const validateForm = () => {
     if (!formData.name.trim()) {
-      setError("Name is required");
+      setError('Name is required');
       return false;
     }
     if (!/^[A-Za-z\s]+$/.test(formData.name.trim())) {
-      setError("Name can contain only letters and spaces");
+      setError('Name can contain only letters and spaces');
       return false;
     }
     if (!formData.email.trim()) {
-      setError("Email is required");
+      setError('Email is required');
       return false;
     }
     if (formData.email !== formData.email.toLowerCase()) {
-      setError("Email must be lowercase");
+      setError('Email must be lowercase');
       return false;
     }
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email)) {
-      setError("Please enter a valid email");
+      setError('Please enter a valid email');
       return false;
     }
     if (!formData.canteen.trim()) {
-      setError("Canteen selection is required");
+      setError('Canteen selection is required');
       return false;
     }
     if (!formData.message.trim()) {
-      setError("Message is required");
+      setError('Message is required');
       return false;
     }
     if (formData.message.trim().length < 30) {
-      setError("Message must be at least 30 characters");
+      setError('Message must be at least 30 characters');
       return false;
     }
     if (formData.rating < 1 || formData.rating > 5) {
-      setError("Rating must be between 1 and 5");
+      setError('Rating must be between 1 and 5');
       return false;
     }
     return true;
@@ -77,8 +79,8 @@ const FeedbackForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
-    setSuccess("");
+    setError('');
+    setSuccess('');
 
     if (!validateForm()) {
       return;
@@ -86,14 +88,16 @@ const FeedbackForm = () => {
 
     setLoading(true);
     try {
-      const response = await feedbackAPI.submitFeedback(formData);
-      setSuccess("Feedback submitted successfully!");
+      await feedbackAPI.submitFeedback(formData);
+      setFormData(getDefaultFormData());
+      setHoverRating(0);
+      setSuccess('Feedback submitted successfully!');
       // Redirect back to support page after a short delay
       setTimeout(() => {
-        navigate("/support");
+        navigate('/support');
       }, 2000);
     } catch (err) {
-      setError(err.response?.data?.message || "Failed to submit feedback");
+      setError(err.response?.data?.message || 'Failed to submit feedback');
     } finally {
       setLoading(false);
     }
@@ -102,12 +106,8 @@ const FeedbackForm = () => {
   return (
     <div className="max-w-2xl mx-auto p-6 bg-white shadow-xl rounded-2xl border border-gray-100">
       <div className="text-center mb-8">
-        <h2 className="text-3xl font-bold text-gray-800 mb-2">
-          Share Your Feedback
-        </h2>
-        <p className="text-gray-600">
-          Help us improve canteen services with your ideas.
-        </p>
+        <h2 className="text-3xl font-bold text-gray-800 mb-2">Share Your Feedback</h2>
+        <p className="text-gray-600">Help us improve canteen services with your ideas.</p>
       </div>
 
       <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-xl mb-6 border border-blue-100">
@@ -119,43 +119,26 @@ const FeedbackForm = () => {
             <button
               key={star}
               type="button"
-              onClick={() => setFormData((prev) => ({ ...prev, rating: star }))}
+              onClick={() => setFormData(prev => ({ ...prev, rating: star }))}
               onMouseEnter={() => setHoverRating(star)}
               onMouseLeave={() => setHoverRating(0)}
               className="text-4xl transition-transform duration-150 hover:scale-110 focus:outline-none"
-              style={{
-                color:
-                  (hoverRating || formData.rating) >= star
-                    ? "#fbbf24"
-                    : "#d1d5db",
-              }}
+              style={{ color: (hoverRating || formData.rating) >= star ? '#fbbf24' : '#d1d5db' }}
             >
               ★
             </button>
           ))}
-          <span className="ml-3 text-lg font-medium text-gray-600">
-            {formData.rating}.0 / 5
-          </span>
+          <span className="ml-3 text-lg font-medium text-gray-600">{formData.rating}.0 / 5</span>
         </div>
       </div>
 
-      {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4">
-          {error}
-        </div>
-      )}
-      {success && (
-        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-4">
-          {success}
-        </div>
-      )}
+      {error && <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4">{error}</div>}
+      {success && <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-4">{success}</div>}
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Full Name <span className="text-red-500">*</span>
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Full Name <span className="text-red-500">*</span></label>
             <input
               type="text"
               name="name"
@@ -169,9 +152,7 @@ const FeedbackForm = () => {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Email Address <span className="text-red-500">*</span>
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Email Address <span className="text-red-500">*</span></label>
             <input
               type="email"
               name="email"
@@ -186,9 +167,7 @@ const FeedbackForm = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              User Type <span className="text-red-500">*</span>
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">User Type <span className="text-red-500">*</span></label>
             <select
               name="userType"
               value={formData.userType}
@@ -201,9 +180,7 @@ const FeedbackForm = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Feedback Category <span className="text-red-500">*</span>
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Feedback Category <span className="text-red-500">*</span></label>
             <select
               name="feedbackType"
               value={formData.feedbackType}
@@ -220,9 +197,7 @@ const FeedbackForm = () => {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Canteen <span className="text-red-500">*</span>
-          </label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Canteen <span className="text-red-500">*</span></label>
           <select
             name="canteen"
             value={formData.canteen}
@@ -230,17 +205,14 @@ const FeedbackForm = () => {
             required
             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 bg-white"
           >
-            <option value="Choose the Canteen">Choose the Canteen</option>
-            <option value="ABC">ABC</option>
-            <option value="BCD">BCD</option>
-            <option value="STU">STU</option>
+            <option value="Main Canteen">Main Canteen • Basement Building</option>
+            <option value="Hostel Canteen">Hostel Canteen • Hostel Block</option>
+            <option value="Mini Canteen">Mini Canteen • Faculty Area</option>
           </select>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Message <span className="text-red-500">*</span>
-          </label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Message <span className="text-red-500">*</span></label>
           <textarea
             name="message"
             value={formData.message}
@@ -259,11 +231,11 @@ const FeedbackForm = () => {
           disabled={loading}
           className={`w-full py-3 px-6 rounded-lg font-semibold text-white transition-all duration-200 transform ${
             loading
-              ? "bg-gray-400 cursor-not-allowed"
-              : "bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 hover:scale-105 shadow-lg hover:shadow-xl"
+              ? 'bg-gray-400 cursor-not-allowed'
+              : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 hover:scale-105 shadow-lg hover:shadow-xl'
           }`}
         >
-          {loading ? "Submitting Feedback..." : "Submit Feedback"}
+          {loading ? 'Submitting Feedback...' : 'Submit Feedback'}
         </button>
       </form>
     </div>

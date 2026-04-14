@@ -1,35 +1,17 @@
-import { Complaint } from "../models/Complaint.js";
-import mongoose from "mongoose";
+import { Complaint } from '../models/Complaint.js';
+import mongoose from 'mongoose';
 
 // Submit new complaint
 export const submitComplaint = async (req, res) => {
   try {
-    const {
-      name,
-      email,
-      userType,
-      category,
-      subject,
-      description,
-      issueDate,
-      priority,
-    } = req.body;
+    const { name, email, userType, canteen, category, subject, description, issueDate, priority } = req.body;
     const photo = req.file ? req.file.path : null;
 
     // Validate required fields
-    if (
-      !name ||
-      !email ||
-      !userType ||
-      !category ||
-      !subject ||
-      !description ||
-      !issueDate ||
-      !priority
-    ) {
+    if (!name || !email || !userType || !canteen || !category || !subject || !description || !issueDate || !priority) {
       return res.status(400).json({
         success: false,
-        message: "All required fields must be filled",
+        message: 'All required fields must be filled'
       });
     }
 
@@ -38,7 +20,7 @@ export const submitComplaint = async (req, res) => {
     if (!emailRegex.test(email)) {
       return res.status(400).json({
         success: false,
-        message: "Invalid email format",
+        message: 'Invalid email format'
       });
     }
 
@@ -47,7 +29,7 @@ export const submitComplaint = async (req, res) => {
     if (isNaN(issueDateObj.getTime())) {
       return res.status(400).json({
         success: false,
-        message: "Invalid issue date",
+        message: 'Invalid issue date'
       });
     }
 
@@ -56,29 +38,30 @@ export const submitComplaint = async (req, res) => {
       name,
       email,
       userType,
+      canteen,
       category,
       subject,
       description,
       issueDate: issueDateObj,
       priority,
-      photo,
+      photo
     });
 
     await complaint.save();
 
     res.status(201).json({
       success: true,
-      message: "Complaint submitted successfully",
+      message: 'Complaint submitted successfully',
       data: {
         complaintId: complaint.complaintId,
-        complaint,
-      },
+        complaint
+      }
     });
   } catch (error) {
-    console.error("Error submitting complaint:", error);
+    console.error('Error submitting complaint:', error);
     res.status(500).json({
       success: false,
-      message: "Internal server error",
+      message: 'Internal server error'
     });
   }
 };
@@ -86,26 +69,27 @@ export const submitComplaint = async (req, res) => {
 // Get all complaints (admin)
 export const getAllComplaints = async (req, res) => {
   try {
-    const { category, status, priority } = req.query;
-
+    const { category, status, priority, canteen } = req.query;
+    
     // Build filter object
     const filter = {};
     if (category) filter.category = category;
     if (status) filter.status = status;
     if (priority) filter.priority = priority;
+    if (canteen) filter.canteen = canteen;
 
     const complaints = await Complaint.find(filter).sort({ createdAt: -1 });
 
     res.status(200).json({
       success: true,
-      message: "Complaints retrieved successfully",
-      data: complaints,
+      message: 'Complaints retrieved successfully',
+      data: complaints
     });
   } catch (error) {
-    console.error("Error fetching complaints:", error);
+    console.error('Error fetching complaints:', error);
     res.status(500).json({
       success: false,
-      message: "Internal server error",
+      message: 'Internal server error'
     });
   }
 };
@@ -118,7 +102,7 @@ export const getComplaintById = async (req, res) => {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({
         success: false,
-        message: "Invalid complaint ID",
+        message: 'Invalid complaint ID'
       });
     }
 
@@ -127,20 +111,20 @@ export const getComplaintById = async (req, res) => {
     if (!complaint) {
       return res.status(404).json({
         success: false,
-        message: "Complaint not found",
+        message: 'Complaint not found'
       });
     }
 
     res.status(200).json({
       success: true,
-      message: "Complaint retrieved successfully",
-      data: complaint,
+      message: 'Complaint retrieved successfully',
+      data: complaint
     });
   } catch (error) {
-    console.error("Error fetching complaint:", error);
+    console.error('Error fetching complaint:', error);
     res.status(500).json({
       success: false,
-      message: "Internal server error",
+      message: 'Internal server error'
     });
   }
 };
@@ -155,20 +139,20 @@ export const trackComplaintByComplaintId = async (req, res) => {
     if (!complaint) {
       return res.status(404).json({
         success: false,
-        message: "Complaint not found",
+        message: 'Complaint not found'
       });
     }
 
     res.status(200).json({
       success: true,
-      message: "Complaint retrieved successfully",
-      data: complaint,
+      message: 'Complaint retrieved successfully',
+      data: complaint
     });
   } catch (error) {
-    console.error("Error tracking complaint:", error);
+    console.error('Error tracking complaint:', error);
     res.status(500).json({
       success: false,
-      message: "Internal server error",
+      message: 'Internal server error'
     });
   }
 };
@@ -182,40 +166,40 @@ export const updateComplaintStatus = async (req, res) => {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({
         success: false,
-        message: "Invalid complaint ID",
+        message: 'Invalid complaint ID'
       });
     }
 
-    if (!["Pending", "In Review", "Resolved", "Rejected"].includes(status)) {
+    if (!['Pending', 'In Review', 'Resolved', 'Rejected'].includes(status)) {
       return res.status(400).json({
         success: false,
-        message: "Invalid status",
+        message: 'Invalid status'
       });
     }
 
     const complaint = await Complaint.findByIdAndUpdate(
       id,
       { status },
-      { new: true, runValidators: true },
+      { new: true, runValidators: true }
     );
 
     if (!complaint) {
       return res.status(404).json({
         success: false,
-        message: "Complaint not found",
+        message: 'Complaint not found'
       });
     }
 
     res.status(200).json({
       success: true,
-      message: "Complaint status updated successfully",
-      data: complaint,
+      message: 'Complaint status updated successfully',
+      data: complaint
     });
   } catch (error) {
-    console.error("Error updating complaint status:", error);
+    console.error('Error updating complaint status:', error);
     res.status(500).json({
       success: false,
-      message: "Internal server error",
+      message: 'Internal server error'
     });
   }
 };
@@ -229,40 +213,40 @@ export const replyToComplaint = async (req, res) => {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({
         success: false,
-        message: "Invalid complaint ID",
+        message: 'Invalid complaint ID'
       });
     }
 
-    if (!adminReply || adminReply.trim() === "") {
+    if (!adminReply || adminReply.trim() === '') {
       return res.status(400).json({
         success: false,
-        message: "Reply message is required",
+        message: 'Reply message is required'
       });
     }
 
     const complaint = await Complaint.findByIdAndUpdate(
       id,
       { adminReply },
-      { new: true, runValidators: true },
+      { new: true, runValidators: true }
     );
 
     if (!complaint) {
       return res.status(404).json({
         success: false,
-        message: "Complaint not found",
+        message: 'Complaint not found'
       });
     }
 
     res.status(200).json({
       success: true,
-      message: "Reply added successfully",
-      data: complaint,
+      message: 'Reply added successfully',
+      data: complaint
     });
   } catch (error) {
-    console.error("Error replying to complaint:", error);
+    console.error('Error replying to complaint:', error);
     res.status(500).json({
       success: false,
-      message: "Internal server error",
+      message: 'Internal server error'
     });
   }
 };
@@ -275,7 +259,7 @@ export const deleteComplaint = async (req, res) => {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({
         success: false,
-        message: "Invalid complaint ID",
+        message: 'Invalid complaint ID'
       });
     }
 
@@ -284,19 +268,19 @@ export const deleteComplaint = async (req, res) => {
     if (!complaint) {
       return res.status(404).json({
         success: false,
-        message: "Complaint not found",
+        message: 'Complaint not found'
       });
     }
 
     res.status(200).json({
       success: true,
-      message: "Complaint deleted successfully",
+      message: 'Complaint deleted successfully'
     });
   } catch (error) {
-    console.error("Error deleting complaint:", error);
+    console.error('Error deleting complaint:', error);
     res.status(500).json({
       success: false,
-      message: "Internal server error",
+      message: 'Internal server error'
     });
   }
 };
@@ -309,24 +293,22 @@ export const getComplaintsByEmail = async (req, res) => {
     if (!email) {
       return res.status(400).json({
         success: false,
-        message: "Email is required",
+        message: 'Email is required'
       });
     }
 
-    const complaints = await Complaint.find({
-      email: email.toLowerCase(),
-    }).sort({ createdAt: -1 });
+    const complaints = await Complaint.find({ email: email.toLowerCase() }).sort({ createdAt: -1 });
 
     res.status(200).json({
       success: true,
-      message: "Complaints retrieved successfully",
-      data: complaints,
+      message: 'Complaints retrieved successfully',
+      data: complaints
     });
   } catch (error) {
-    console.error("Error fetching complaints by email:", error);
+    console.error('Error fetching complaints by email:', error);
     res.status(500).json({
       success: false,
-      message: "Internal server error",
+      message: 'Internal server error'
     });
   }
 };

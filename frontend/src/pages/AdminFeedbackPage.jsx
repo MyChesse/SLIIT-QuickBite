@@ -1,15 +1,18 @@
-import React, { useState, useEffect } from "react";
-import { feedbackAPI } from "../services/api.js";
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router';
+import { feedbackAPI } from '../services/api.js';
+import AdminSidebar from '../components/AdminSidebar';
 
 const AdminFeedbackPage = () => {
+  const navigate = useNavigate();
   const [feedbackList, setFeedbackList] = useState([]);
   const [filteredFeedback, setFilteredFeedback] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
   const [filters, setFilters] = useState({
-    feedbackType: "",
-    rating: "",
-    userType: "",
+    feedbackType: '',
+    rating: '',
+    userType: ''
   });
 
   useEffect(() => {
@@ -26,7 +29,7 @@ const AdminFeedbackPage = () => {
       setFeedbackList(response.data);
       setLoading(false);
     } catch (err) {
-      setError("Failed to fetch feedback");
+      setError('Failed to fetch feedback');
       setLoading(false);
     }
   };
@@ -35,17 +38,15 @@ const AdminFeedbackPage = () => {
     let filtered = [...feedbackList];
 
     if (filters.feedbackType) {
-      filtered = filtered.filter(
-        (f) => f.feedbackType === filters.feedbackType,
-      );
+      filtered = filtered.filter(f => f.feedbackType === filters.feedbackType);
     }
 
     if (filters.rating) {
-      filtered = filtered.filter((f) => f.rating === parseInt(filters.rating));
+      filtered = filtered.filter(f => f.rating === parseInt(filters.rating));
     }
 
     if (filters.userType) {
-      filtered = filtered.filter((f) => f.userType === filters.userType);
+      filtered = filtered.filter(f => f.userType === filters.userType);
     }
 
     setFilteredFeedback(filtered);
@@ -53,34 +54,31 @@ const AdminFeedbackPage = () => {
 
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
-    setFilters((prev) => ({
+    setFilters(prev => ({
       ...prev,
-      [name]: value,
+      [name]: value
     }));
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm("Are you sure you want to delete this feedback?")) {
+    if (window.confirm('Are you sure you want to delete this feedback?')) {
       try {
         await feedbackAPI.deleteFeedback(id);
         fetchFeedback(); // Refresh the list
       } catch (err) {
-        setError("Failed to delete feedback");
+        setError('Failed to delete feedback');
       }
     }
   };
 
   const getSummary = () => {
     const total = feedbackList.length;
-    const averageRating =
-      total > 0
-        ? (feedbackList.reduce((sum, f) => sum + f.rating, 0) / total).toFixed(
-            1,
-          )
-        : 0;
-
+    const averageRating = total > 0 
+      ? (feedbackList.reduce((sum, f) => sum + f.rating, 0) / total).toFixed(1)
+      : 0;
+    
     const feedbackTypes = {};
-    feedbackList.forEach((f) => {
+    feedbackList.forEach(f => {
       feedbackTypes[f.feedbackType] = (feedbackTypes[f.feedbackType] || 0) + 1;
     });
 
@@ -90,31 +88,42 @@ const AdminFeedbackPage = () => {
   const { total, averageRating, feedbackTypes } = getSummary();
   const topType = Object.entries(feedbackTypes).sort((a, b) => b[1] - a[1])[0];
 
+  const renderSidebar = (activePage) => <AdminSidebar activePage={activePage} />;
+
   const getRatingBadgeClass = (rating) => {
     if (rating >= 4) {
-      return "bg-emerald-50 text-emerald-700 border border-emerald-200";
+      return 'bg-emerald-50 text-emerald-700 border border-emerald-200';
     }
 
     if (rating >= 3) {
-      return "bg-[#FF7A00]/15 text-[#A93802] border border-[#FF7A00]/35";
+      return 'bg-[#FF7A00]/15 text-[#A93802] border border-[#FF7A00]/35';
     }
 
-    return "bg-[#A93802]/12 text-[#A93802] border border-[#A93802]/30";
+    return 'bg-[#A93802]/12 text-[#A93802] border border-[#A93802]/30';
   };
 
   if (loading) {
     return (
-      <div className="mx-auto w-full max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-        <div className="rounded-3xl border border-[#0056D2]/20 bg-white/90 p-10 text-center text-[#475569] shadow-[0_24px_60px_-38px_rgba(0,86,210,0.5)]">
-          Loading feedback...
+      <div className="min-h-screen bg-[#f5f7fb] text-slate-800">
+        <div className="flex min-h-screen">
+          {renderSidebar('feedback')}
+          <main className="flex-1 px-4 py-12 sm:px-6 lg:px-8">
+            <div className="mx-auto w-full max-w-7xl rounded-3xl border border-[#0056D2]/20 bg-white/90 p-10 text-center text-[#475569] shadow-[0_24px_60px_-38px_rgba(0,86,210,0.5)]">
+              Loading feedback...
+            </div>
+          </main>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="relative overflow-hidden px-4 pb-16 pt-8 sm:px-6 lg:px-8">
-      <div className="mx-auto w-full max-w-7xl">
+    <div className="min-h-screen bg-[#f5f7fb] text-slate-800">
+      <div className="flex min-h-screen">
+        {renderSidebar('feedback')}
+
+        <main className="relative flex-1 overflow-hidden px-4 pb-16 pt-8 sm:px-6 lg:px-8">
+          <div className="mx-auto w-full max-w-7xl">
         <div className="rounded-3xl border border-[#0056D2]/20 bg-white/90 p-6 shadow-[0_26px_75px_-42px_rgba(0,86,210,0.52)] backdrop-blur-sm sm:p-8">
           <div className="grid gap-6 lg:grid-cols-[1.2fr_1fr] lg:items-center">
             <div>
@@ -125,35 +134,22 @@ const AdminFeedbackPage = () => {
                 Feedback Management Center
               </h1>
               <p className="mt-3 max-w-2xl text-sm text-[#475569] sm:text-base">
-                Track service quality, monitor user sentiment, and quickly
-                review feedback trends with focused filters.
+                Track service quality, monitor user sentiment, and quickly review feedback trends with focused filters.
               </p>
             </div>
 
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
               <div className="rounded-2xl border border-[#0056D2]/25 bg-[#0056D2]/10 p-4">
-                <p className="text-xs font-semibold uppercase tracking-wide text-[#0056D2]">
-                  Total
-                </p>
-                <p className="mt-2 text-2xl font-bold text-[#0056D2]">
-                  {total}
-                </p>
+                <p className="text-xs font-semibold uppercase tracking-wide text-[#0056D2]">Total</p>
+                <p className="mt-2 text-2xl font-bold text-[#0056D2]">{total}</p>
               </div>
               <div className="rounded-2xl border border-[#FF7A00]/35 bg-[#FF7A00]/10 p-4">
-                <p className="text-xs font-semibold uppercase tracking-wide text-[#A93802]">
-                  Average Rating
-                </p>
-                <p className="mt-2 text-2xl font-bold text-[#A93802]">
-                  {averageRating}
-                </p>
+                <p className="text-xs font-semibold uppercase tracking-wide text-[#A93802]">Average Rating</p>
+                <p className="mt-2 text-2xl font-bold text-[#A93802]">{averageRating}</p>
               </div>
               <div className="rounded-2xl border border-[#A93802]/25 bg-[#A93802]/10 p-4">
-                <p className="text-xs font-semibold uppercase tracking-wide text-[#A93802]">
-                  Top Type
-                </p>
-                <p className="mt-2 truncate text-lg font-bold text-[#A93802]">
-                  {topType ? `${topType[0]} (${topType[1]})` : "N/A"}
-                </p>
+                <p className="text-xs font-semibold uppercase tracking-wide text-[#A93802]">Top Type</p>
+                <p className="mt-2 truncate text-lg font-bold text-[#A93802]">{topType ? `${topType[0]} (${topType[1]})` : 'N/A'}</p>
               </div>
             </div>
           </div>
@@ -162,16 +158,12 @@ const AdminFeedbackPage = () => {
         <div className="mt-6 rounded-3xl border border-slate-200 bg-white/95 p-5 shadow-[0_20px_55px_-38px_rgba(15,23,42,0.35)] sm:p-6">
           <div className="mb-3 flex items-center justify-between gap-3">
             <h2 className="text-lg font-semibold text-slate-900">Filters</h2>
-            <p className="text-sm text-[#475569]">
-              {filteredFeedback.length} showing
-            </p>
+            <p className="text-sm text-[#475569]">{filteredFeedback.length} showing</p>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <div>
-              <label className="mb-1 block text-sm font-medium text-[#475569]">
-                Feedback Type
-              </label>
+              <label className="mb-1 block text-sm font-medium text-[#475569]">Feedback Type</label>
               <select
                 name="feedbackType"
                 value={filters.feedbackType}
@@ -188,9 +180,7 @@ const AdminFeedbackPage = () => {
             </div>
 
             <div>
-              <label className="mb-1 block text-sm font-medium text-[#475569]">
-                Rating
-              </label>
+              <label className="mb-1 block text-sm font-medium text-[#475569]">Rating</label>
               <select
                 name="rating"
                 value={filters.rating}
@@ -207,9 +197,7 @@ const AdminFeedbackPage = () => {
             </div>
 
             <div>
-              <label className="mb-1 block text-sm font-medium text-[#475569]">
-                User Type
-              </label>
+              <label className="mb-1 block text-sm font-medium text-[#475569]">User Type</label>
               <select
                 name="userType"
                 value={filters.userType}
@@ -241,21 +229,18 @@ const AdminFeedbackPage = () => {
                 key={feedback._id}
                 className="rounded-3xl border border-slate-200 bg-white p-5 shadow-[0_14px_34px_-26px_rgba(15,23,42,0.45)] transition hover:shadow-[0_18px_40px_-24px_rgba(0,86,210,0.3)] sm:p-6"
               >
+                
                 <div className="mt-4 flex flex-wrap items-center gap-2">
                   <span className="rounded-full border border-[#0056D2]/25 bg-[#0056D2]/10 px-3 py-1 text-xs font-semibold text-[#0056D2]">
                     {feedback.feedbackType}
                   </span>
-                  <span
-                    className={`rounded-full px-3 py-1 text-xs font-semibold ${getRatingBadgeClass(feedback.rating)}`}
-                  >
+                  <span className={`rounded-full px-3 py-1 text-xs font-semibold ${getRatingBadgeClass(feedback.rating)}`}>
                     Rating {feedback.rating}
                   </span>
                 </div>
 
                 <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                  <p className="text-sm leading-relaxed text-slate-700">
-                    {feedback.message}
-                  </p>
+                  <p className="text-sm leading-relaxed text-slate-700">{feedback.message}</p>
                 </div>
 
                 <p className="mt-4 text-xs text-[#475569]">
@@ -265,6 +250,8 @@ const AdminFeedbackPage = () => {
             ))
           )}
         </div>
+          </div>
+        </main>
       </div>
     </div>
   );

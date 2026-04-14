@@ -1,16 +1,16 @@
-import { Feedback } from "../models/Feedback.js";
-import mongoose from "mongoose";
+import { Feedback } from '../models/Feedback.js';
+import mongoose from 'mongoose';
 
 // Submit new feedback
 export const submitFeedback = async (req, res) => {
   try {
-    const { name, email, userType, feedbackType, message, rating } = req.body;
+    const { name, email, userType, canteen, feedbackType, message, rating } = req.body;
 
     // Validate required fields
-    if (!name || !email || !userType || !feedbackType || !message || !rating) {
+    if (!name || !email || !userType || !canteen || !feedbackType || !message || !rating) {
       return res.status(400).json({
         success: false,
-        message: "All fields are required",
+        message: 'All fields are required'
       });
     }
 
@@ -19,7 +19,7 @@ export const submitFeedback = async (req, res) => {
     if (!emailRegex.test(email)) {
       return res.status(400).json({
         success: false,
-        message: "Invalid email format",
+        message: 'Invalid email format'
       });
     }
 
@@ -27,7 +27,7 @@ export const submitFeedback = async (req, res) => {
     if (rating < 1 || rating > 5) {
       return res.status(400).json({
         success: false,
-        message: "Rating must be between 1 and 5",
+        message: 'Rating must be between 1 and 5'
       });
     }
 
@@ -36,23 +36,24 @@ export const submitFeedback = async (req, res) => {
       name,
       email,
       userType,
+      canteen,
       feedbackType,
       message,
-      rating: parseInt(rating),
+      rating: parseInt(rating)
     });
 
     await feedback.save();
 
     res.status(201).json({
       success: true,
-      message: "Feedback submitted successfully",
-      data: feedback,
+      message: 'Feedback submitted successfully',
+      data: feedback
     });
   } catch (error) {
-    console.error("Error submitting feedback:", error);
+    console.error('Error submitting feedback:', error);
     res.status(500).json({
       success: false,
-      message: "Internal server error",
+      message: 'Internal server error'
     });
   }
 };
@@ -60,26 +61,27 @@ export const submitFeedback = async (req, res) => {
 // Get all feedback (admin)
 export const getAllFeedback = async (req, res) => {
   try {
-    const { feedbackType, rating, userType } = req.query;
-
+    const { feedbackType, rating, userType, canteen } = req.query;
+    
     // Build filter object
     const filter = {};
     if (feedbackType) filter.feedbackType = feedbackType;
     if (rating) filter.rating = parseInt(rating);
     if (userType) filter.userType = userType;
+    if (canteen) filter.canteen = canteen;
 
     const feedback = await Feedback.find(filter).sort({ createdAt: -1 });
 
     res.status(200).json({
       success: true,
-      message: "Feedback retrieved successfully",
-      data: feedback,
+      message: 'Feedback retrieved successfully',
+      data: feedback
     });
   } catch (error) {
-    console.error("Error fetching feedback:", error);
+    console.error('Error fetching feedback:', error);
     res.status(500).json({
       success: false,
-      message: "Internal server error",
+      message: 'Internal server error'
     });
   }
 };
@@ -92,7 +94,7 @@ export const getFeedbackById = async (req, res) => {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({
         success: false,
-        message: "Invalid feedback ID",
+        message: 'Invalid feedback ID'
       });
     }
 
@@ -101,20 +103,20 @@ export const getFeedbackById = async (req, res) => {
     if (!feedback) {
       return res.status(404).json({
         success: false,
-        message: "Feedback not found",
+        message: 'Feedback not found'
       });
     }
 
     res.status(200).json({
       success: true,
-      message: "Feedback retrieved successfully",
-      data: feedback,
+      message: 'Feedback retrieved successfully',
+      data: feedback
     });
   } catch (error) {
-    console.error("Error fetching feedback:", error);
+    console.error('Error fetching feedback:', error);
     res.status(500).json({
       success: false,
-      message: "Internal server error",
+      message: 'Internal server error'
     });
   }
 };
@@ -127,7 +129,7 @@ export const deleteFeedback = async (req, res) => {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({
         success: false,
-        message: "Invalid feedback ID",
+        message: 'Invalid feedback ID'
       });
     }
 
@@ -136,19 +138,19 @@ export const deleteFeedback = async (req, res) => {
     if (!feedback) {
       return res.status(404).json({
         success: false,
-        message: "Feedback not found",
+        message: 'Feedback not found'
       });
     }
 
     res.status(200).json({
       success: true,
-      message: "Feedback deleted successfully",
+      message: 'Feedback deleted successfully'
     });
   } catch (error) {
-    console.error("Error deleting feedback:", error);
+    console.error('Error deleting feedback:', error);
     res.status(500).json({
       success: false,
-      message: "Internal server error",
+      message: 'Internal server error'
     });
   }
 };
@@ -161,7 +163,7 @@ export const getFeedbackByEmail = async (req, res) => {
     if (!email) {
       return res.status(400).json({
         success: false,
-        message: "Email is required",
+        message: 'Email is required'
       });
     }
 
@@ -169,14 +171,14 @@ export const getFeedbackByEmail = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: "Feedback retrieved successfully",
-      data: feedback,
+      message: 'Feedback retrieved successfully',
+      data: feedback
     });
   } catch (error) {
-    console.error("Error fetching feedback:", error);
+    console.error('Error fetching feedback:', error);
     res.status(500).json({
       success: false,
-      message: "Internal server error",
+      message: 'Internal server error'
     });
   }
 };

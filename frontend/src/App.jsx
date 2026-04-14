@@ -1,180 +1,209 @@
-import React from "react";
-import { Routes, Route, Navigate, useLocation } from "react-router-dom";
-import { Toaster } from "react-hot-toast";
-
-// 🔥 CART CONTEXT (IMPORTANT ADDITION)
-import { CartProvider } from "./context/CartContext";
+import React from 'react';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { Toaster } from 'react-hot-toast';
 
 // Components
-import Navbar from "./components/Navbar";
-import ProtectedRoute from "./components/ProtectedRoute";
-import AdminProtectedRoute from "./components/AdminProtectedRoute";
-import StaffProtectedRoute from "./components/StaffProtectedRoute";
+import ProtectedRoute from './components/ProtectedRoute';
+import AdminProtectedRoute from './components/AdminProtectedRoute';
+import StaffProtectedRoute from './components/StaffProtectedRoute';
 
 // Pages
-import SDInventoryPage from "./pages/SDInventoryPage";
-import SDMenuPage from "./pages/SDMenuPage";
-import Register from "./pages/Register";
-import Login from "./pages/Login";
-import UserDashboard from "./pages/UserDashboard";
-import Profile from "./pages/Profile";
-import AdminDashboard from "./pages/AdminDashboard";
-import Analytics from "./pages/Analytics";
-import AdminViewOrders from "./pages/AdminViewOrders";
-import DailyPromotions from "./pages/DailyPromotions";
-import AddNewCanteenPromotion from "./pages/AddNewCanteenPromotion";
-import AddBasementCanteenPromotion from "./pages/AddBasementCanteenPromotion";
-import AddAnohanaCanteenPromotion from "./pages/AddAnohanaCanteenPromotion";
-import CanteenSelection from "./pages/CanteenSelection";
-import SupportPage from "./pages/SupportPage.jsx";
-import AdminFeedbackPage from "./pages/AdminFeedbackPage.jsx";
-import AdminComplaintsPage from "./pages/AdminComplaintsPage.jsx";
-
-// 🛒 NEW PAGES (MAKE SURE THESE EXIST)
-import CartPage from "./components/CartPage";
-import BookingPage from "./components/BookingPage";
-import OrderStatusPage from "./components/OrderStatusPage";
-import MenuPage from "./components/MenuPage.jsx";
+import SDInventoryPage from './pages/SDInventoryPage';
+import SDMenuPage from './pages/SDMenuPage';
+import Register from './pages/Register';
+import Login from './pages/Login';
+import UserDashboard from './pages/UserDashboard';
+import Profile from './pages/Profile';
+import AdminDashboard from './pages/AdminDashboard';
+import DailyPromotions from './pages/DailyPromotions';
+import AddNewCanteenPromotion from './pages/AddNewCanteenPromotion';
+import AddBasementCanteenPromotion from './pages/AddBasementCanteenPromotion';
+import AddAnohanaCanteenPromotion from './pages/AddAnohanaCanteenPromotion';
+import StaffOrdersPage from './pages/StaffOrdersPage';
+import StaffReportsPage from './pages/StaffReportsPage';
+import StaffPromotionSelection from './pages/StaffPromotionSelection';
+import StaffCanteenComplaintsPage from './pages/StaffCanteenComplaintsPage';
+import CanteenSelection from './pages/CanteenSelection';
+import SupportPage from './pages/SupportPage.jsx';
+import AdminFeedbackPage from './pages/AdminFeedbackPage.jsx';
+import AdminComplaintsPage from './pages/AdminComplaintsPage.jsx';
+import AdminInventoryPage from './pages/AdminInventoryPage.jsx';
 
 const App = () => {
-  const location = useLocation();
-
-  // hide navbar in selected routes
-  const hideNavbarRoutes = ["/cart", "/booking", "/order-status"];
-  const hideNavbar =
-    location.pathname.startsWith("/admin/promotions") ||
-    hideNavbarRoutes.includes(location.pathname);
-
   return (
-    <CartProvider>
-      <div>
-        {!hideNavbar && <Navbar />}
+    <div>
+      <Routes>
+        {/* Public Routes */}
+        <Route path="/register" element={<Register />} />
+        <Route path="/login" element={<Login />} />
 
-        <Routes>
-          {/* PUBLIC ROUTES */}
-          <Route path="/register" element={<Register />} />
-          <Route path="/login" element={<Login />} />
+        {/* Staff Routes */}
+        <Route
+          path="/inventory"
+          element={
+            <StaffProtectedRoute>
+              <SDInventoryPage />
+            </StaffProtectedRoute>
+          }
+        />
+        <Route
+          path="/complaints"
+          element={
+            <StaffProtectedRoute>
+              <StaffCanteenComplaintsPage />
+            </StaffProtectedRoute>
+          }
+        />
+        <Route
+          path="/orders"
+          element={
+            <StaffProtectedRoute>
+              <StaffOrdersPage />
+            </StaffProtectedRoute>
+          }
+        />
+        <Route
+          path="/reports"
+          element={
+            <StaffProtectedRoute>
+              <StaffReportsPage />
+            </StaffProtectedRoute>
+          }
+        />
+        <Route
+          path="/add-promotion"
+          element={
+            <StaffProtectedRoute>
+              <StaffPromotionSelection />
+            </StaffProtectedRoute>
+          }
+        />
+        <Route
+          path="/add-promotion/new-canteen"
+          element={
+            <StaffProtectedRoute>
+              <AddNewCanteenPromotion />
+            </StaffProtectedRoute>
+          }
+        />
+        <Route
+          path="/add-promotion/basement-canteen"
+          element={
+            <StaffProtectedRoute>
+              <AddBasementCanteenPromotion />
+            </StaffProtectedRoute>
+          }
+        />
+        <Route
+          path="/add-promotion/anohana-canteen"
+          element={
+            <StaffProtectedRoute>
+              <AddAnohanaCanteenPromotion />
+            </StaffProtectedRoute>
+          }
+        />
 
-          {/* STUDENT MENU */}
-          <Route path="/menu" element={<SDMenuPage />} />
+        {/* Student Routes */}
+        <Route path="/menu" element={<SDMenuPage />} />
 
-          {/* 🛒 CART FLOW (NEW IMPORTANT ROUTES) */}
-          <Route path="/cart" element={<CartPage />} />
-          <Route path="/booking" element={<BookingPage />} />
-          <Route path="/order-status" element={<OrderStatusPage />} />
-          <Route path="/menu2" element={<MenuPage />} />
+        {/* Protected User Routes */}
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <UserDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          }
+        />
 
-          {/* STAFF ROUTES */}
-          <Route
-            path="/inventory"
-            element={
-              <StaffProtectedRoute>
-                <SDInventoryPage />
-              </StaffProtectedRoute>
-            }
-          />
+        {/* Protected Admin Routes */}
+        <Route
+          path="/admin/dashboard"
+          element={
+            <AdminProtectedRoute>
+              <AdminDashboard />
+            </AdminProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/promotions"
+          element={
+            <AdminProtectedRoute>
+              <CanteenSelection />
+            </AdminProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/promotions/new-canteen"
+          element={
+            <AdminProtectedRoute>
+              <AddNewCanteenPromotion />
+            </AdminProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/promotions/basement-canteen"
+          element={
+            <AdminProtectedRoute>
+              <AddBasementCanteenPromotion />
+            </AdminProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/promotions/anohana-canteen"
+          element={
+            <AdminProtectedRoute>
+              <AddAnohanaCanteenPromotion />
+            </AdminProtectedRoute>
+          }
+        />
 
-          {/* USER ROUTES */}
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute>
-                <UserDashboard />
-              </ProtectedRoute>
-            }
-          />
+        {/* Support and admin pages */}
+        <Route path="/support" element={<SupportPage />} />
+        <Route
+          path="/admin/feedback"
+          element={
+            <AdminProtectedRoute>
+              <AdminFeedbackPage />
+            </AdminProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/complaints"
+          element={
+            <AdminProtectedRoute>
+              <AdminComplaintsPage />
+            </AdminProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/inventory"
+          element={
+            <AdminProtectedRoute>
+              <AdminInventoryPage />
+            </AdminProtectedRoute>
+          }
+        />
 
-          <Route
-            path="/profile"
-            element={
-              <ProtectedRoute>
-                <Profile />
-              </ProtectedRoute>
-            }
-          />
+        {/* Promotions */}
+        <Route path="/promotions" element={<DailyPromotions />} />
 
-          {/* ADMIN ROUTES */}
-          <Route
-            path="/admin/dashboard"
-            element={
-              <AdminProtectedRoute>
-                <AdminDashboard />
-              </AdminProtectedRoute>
-            }
-          />
+        {/* Default Route */}
+        <Route path="/" element={<Navigate to="/login" replace />} />
 
-          <Route
-            path="/admin/analytics"
-            element={
-              <AdminProtectedRoute>
-                <Analytics />
-              </AdminProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/admin/promotions"
-            element={
-              <AdminProtectedRoute>
-                <CanteenSelection />
-              </AdminProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/admin/promotions/new-canteen"
-            element={
-              <AdminProtectedRoute>
-                <AddNewCanteenPromotion />
-              </AdminProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/admin/promotions/basement-canteen"
-            element={
-              <AdminProtectedRoute>
-                <AddBasementCanteenPromotion />
-              </AdminProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/admin/promotions/anohana-canteen"
-            element={
-              <AdminProtectedRoute>
-                <AddAnohanaCanteenPromotion />
-              </AdminProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/admin/orders"
-            element={
-              <AdminProtectedRoute>
-                <AdminViewOrders />
-              </AdminProtectedRoute>
-            }
-          />
-
-          {/* SUPPORT */}
-          <Route path="/support" element={<SupportPage />} />
-          <Route path="/admin/feedback" element={<AdminFeedbackPage />} />
-          <Route path="/admin/complaints" element={<AdminComplaintsPage />} />
-
-          {/* PROMOTIONS */}
-          <Route path="/promotions" element={<DailyPromotions />} />
-
-          {/* DEFAULT */}
-          <Route path="/" element={<Navigate to="/login" replace />} />
-
-          {/* 404 */}
-          <Route path="*" element={<Navigate to="/login" replace />} />
-        </Routes>
-
-        <Toaster position="top-right" />
-      </div>
-    </CartProvider>
+        {/* Catch all - 404 */}
+        <Route path="*" element={<Navigate to="/login" replace />} />
+      </Routes>
+      <Toaster position="top-right" />
+    </div>
   );
 };
 

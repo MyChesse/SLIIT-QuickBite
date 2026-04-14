@@ -1,39 +1,41 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { complaintAPI } from "../services/api.js";
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { complaintAPI } from '../services/api.js';
 
 const ComplaintForm = () => {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    userType: "Student",
-    canteen: "Canteen 3",
-    category: "Food issue",
-    subject: "",
-    description: "",
-    issueDate: new Date().toISOString().split("T")[0],
-    priority: "Medium",
+  const getDefaultFormData = () => ({
+    name: '',
+    email: '',
+    userType: 'Student',
+    canteen: 'Main Canteen',
+    category: 'Food issue',
+    subject: '',
+    description: '',
+    issueDate: new Date().toISOString().split('T')[0],
+    priority: 'Medium'
   });
+
+  const [formData, setFormData] = useState(getDefaultFormData);
 
   const [photoFile, setPhotoFile] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState("");
-  const [error, setError] = useState("");
-  const today = new Date().toISOString().split("T")[0];
+  const [success, setSuccess] = useState('');
+  const [error, setError] = useState('');
+  const today = new Date().toISOString().split('T')[0];
 
   const handleChange = (e) => {
     const { name, value } = e.target;
 
-    if (name === "name" && value !== "" && !/^[A-Za-z\s]*$/.test(value)) {
+    if (name === 'name' && value !== '' && !/^[A-Za-z\s]*$/.test(value)) {
       return;
     }
 
-    const nextValue = name === "email" ? value.toLowerCase() : value;
+    const nextValue = name === 'email' ? value.toLowerCase() : value;
 
-    setFormData((prev) => ({
+    setFormData(prev => ({
       ...prev,
-      [name]: nextValue,
+      [name]: nextValue
     }));
   };
 
@@ -41,72 +43,72 @@ const ComplaintForm = () => {
     const file = e.target.files[0];
     if (file) {
       // Check if file is an image
-      if (!file.type.startsWith("image/")) {
-        setError("Only image files are allowed");
+      if (!file.type.startsWith('image/')) {
+        setError('Only image files are allowed');
         return;
       }
       // Check file size (5MB limit)
       if (file.size > 5 * 1024 * 1024) {
-        setError("File size must be less than 5MB");
+        setError('File size must be less than 5MB');
         return;
       }
       setPhotoFile(file);
-      setError("");
+      setError('');
     }
   };
 
   const validateForm = () => {
     if (!formData.name.trim()) {
-      setError("Name is required");
+      setError('Name is required');
       return false;
     }
     if (!/^[A-Za-z\s]+$/.test(formData.name.trim())) {
-      setError("Name can contain only letters and spaces");
+      setError('Name can contain only letters and spaces');
       return false;
     }
     if (!formData.email.trim()) {
-      setError("Email is required");
+      setError('Email is required');
       return false;
     }
     if (formData.email !== formData.email.toLowerCase()) {
-      setError("Email must be lowercase");
+      setError('Email must be lowercase');
       return false;
     }
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email)) {
-      setError("Please enter a valid email");
+      setError('Please enter a valid email');
       return false;
     }
     if (!formData.canteen?.trim()) {
-      setError("Canteen selection is required");
+      setError('Canteen selection is required');
       return false;
     }
     if (!formData.userType?.trim()) {
-      setError("User Type is required");
+      setError('User Type is required');
       return false;
     }
     if (!formData.category?.trim()) {
-      setError("Complaint Category is required");
+      setError('Complaint Category is required');
       return false;
     }
     if (!formData.subject.trim()) {
-      setError("Subject is required");
+      setError('Subject is required');
       return false;
     }
     if (!formData.description.trim()) {
-      setError("Description is required");
+      setError('Description is required');
       return false;
     }
     if (!formData.issueDate) {
-      setError("Issue date is required");
+      setError('Issue date is required');
       return false;
     }
     if (formData.issueDate > today) {
-      setError("Issue date cannot be in the future");
+      setError('Issue date cannot be in the future');
       return false;
     }
     if (!formData.priority?.trim()) {
-      setError("Priority Level is required");
+      setError('Priority Level is required');
       return false;
     }
     return true;
@@ -114,8 +116,8 @@ const ComplaintForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
-    setSuccess("");
+    setError('');
+    setSuccess('');
 
     if (!validateForm()) {
       return;
@@ -124,15 +126,15 @@ const ComplaintForm = () => {
     setLoading(true);
     try {
       const response = await complaintAPI.submitComplaint(formData, photoFile);
-      setSuccess(
-        `Complaint submitted successfully! Your complaint ID is: ${response.data.complaintId}`,
-      );
+      setFormData(getDefaultFormData());
+      setPhotoFile(null);
+      setSuccess(`Complaint submitted successfully! Your complaint ID is: ${response.data.complaintId}`);
       // Redirect back to support page after a short delay
       setTimeout(() => {
-        navigate("/support");
+        navigate('/support');
       }, 2000);
     } catch (err) {
-      setError(err.response?.data?.message || "Failed to submit complaint");
+      setError(err.response?.data?.message || 'Failed to submit complaint');
     } finally {
       setLoading(false);
     }
@@ -141,31 +143,17 @@ const ComplaintForm = () => {
   return (
     <div className="max-w-2xl mx-auto p-6 bg-white shadow-xl rounded-2xl border border-gray-100">
       <div className="text-center mb-8">
-        <h2 className="text-3xl font-bold text-gray-800 mb-2">
-          File a Complaint
-        </h2>
-        <p className="text-gray-600">
-          Report issues or problems that need immediate attention.
-        </p>
+        <h2 className="text-3xl font-bold text-gray-800 mb-2">File a Complaint</h2>
+        <p className="text-gray-600">Report issues or problems that need immediate attention.</p>
       </div>
 
-      {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4">
-          {error}
-        </div>
-      )}
-      {success && (
-        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-4">
-          {success}
-        </div>
-      )}
+      {error && <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4">{error}</div>}
+      {success && <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-4">{success}</div>}
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Full Name <span className="text-red-500">*</span>
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Full Name <span className="text-red-500">*</span></label>
             <input
               type="text"
               name="name"
@@ -180,9 +168,7 @@ const ComplaintForm = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Email Address <span className="text-red-500">*</span>
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Email Address <span className="text-red-500">*</span></label>
             <input
               type="email"
               name="email"
@@ -197,9 +183,7 @@ const ComplaintForm = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              User Type <span className="text-red-500">*</span>
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">User Type <span className="text-red-500">*</span></label>
             <select
               name="userType"
               value={formData.userType}
@@ -212,9 +196,7 @@ const ComplaintForm = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Complaint Category <span className="text-red-500">*</span>
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Complaint Category <span className="text-red-500">*</span></label>
             <select
               name="category"
               value={formData.category}
@@ -233,26 +215,21 @@ const ComplaintForm = () => {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Canteen <span className="text-red-500">*</span>
-          </label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Canteen <span className="text-red-500">*</span></label>
           <select
             name="canteen"
             value={formData.canteen}
             onChange={handleChange}
             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 bg-white"
           >
-            <option value="Choose the Canteen">Choose the Canteen</option>
-            <option value="ABC">ABC</option>
-            <option value="BCD">BCD</option>
-            <option value="STU">STU</option>
+            <option value="Main Canteen">Main Canteen • Basement Building</option>
+            <option value="Hostel Canteen">Hostel Canteen • Hostel Block</option>
+            <option value="Mini Canteen">Mini Canteen • Faculty Area</option>
           </select>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Subject <span className="text-red-500">*</span>
-          </label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Subject <span className="text-red-500">*</span></label>
           <input
             type="text"
             name="subject"
@@ -265,9 +242,7 @@ const ComplaintForm = () => {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Detailed Description <span className="text-red-500">*</span>
-          </label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Detailed Description <span className="text-red-500">*</span></label>
           <textarea
             name="description"
             value={formData.description}
@@ -281,9 +256,7 @@ const ComplaintForm = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Date of Issue <span className="text-red-500">*</span>
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Date of Issue <span className="text-red-500">*</span></label>
             <input
               type="date"
               name="issueDate"
@@ -296,9 +269,7 @@ const ComplaintForm = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Priority Level <span className="text-red-500">*</span>
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Priority Level <span className="text-red-500">*</span></label>
             <select
               name="priority"
               value={formData.priority}
@@ -313,9 +284,7 @@ const ComplaintForm = () => {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Supporting Photo (Optional)
-          </label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Supporting Photo (Optional)</label>
           <div className="relative">
             <input
               type="file"
@@ -337,11 +306,11 @@ const ComplaintForm = () => {
           disabled={loading}
           className={`w-full py-3 px-6 rounded-lg font-semibold text-white transition-all duration-200 transform ${
             loading
-              ? "bg-gray-400 cursor-not-allowed"
-              : "bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 hover:scale-105 shadow-lg hover:shadow-xl"
+              ? 'bg-gray-400 cursor-not-allowed'
+              : 'bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 hover:scale-105 shadow-lg hover:shadow-xl'
           }`}
         >
-          {loading ? "Submitting Complaint..." : "Submit Complaint"}
+          {loading ? 'Submitting Complaint...' : 'Submit Complaint'}
         </button>
       </form>
     </div>
