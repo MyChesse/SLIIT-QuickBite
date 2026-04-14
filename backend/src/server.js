@@ -5,8 +5,7 @@ import promotionRoutes from './routes/promotionRoutes.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
-import { connectDB } from './config/db.js';
-import promotionRoutes from './routes/promotionRoutes.js';
+
 import feedbackRoutes from './routes/feedbackRoutes.js';
 import complaintRoutes from './routes/complaintRoutes.js';
 import SDinventoryRoutes from './routes/SDinventoryRoutes.js';

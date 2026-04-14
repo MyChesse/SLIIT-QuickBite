@@ -1,12 +1,11 @@
 import React from 'react';
-import { Routes, Route, Navigate, useLocation } from 'react-router';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 
 // Components
-import Navbar from './components/Navbar';
 import ProtectedRoute from './components/ProtectedRoute';
-import AdminProtectedRoute from './components/AdminProtectedRoute';
 import StaffProtectedRoute from './components/StaffProtectedRoute';
+import AdminProtectedRoute from './components/AdminProtectedRoute';
 
 // Pages
 import SDInventoryPage from './pages/SDInventoryPage';
@@ -21,46 +20,32 @@ import AddNewCanteenPromotion from './pages/AddNewCanteenPromotion';
 import AddBasementCanteenPromotion from './pages/AddBasementCanteenPromotion';
 import AddAnohanaCanteenPromotion from './pages/AddAnohanaCanteenPromotion';
 import CanteenSelection from './pages/CanteenSelection';
-
-const App = () => {
-  const location = useLocation();
-  const hideNavbar = location.pathname.startsWith('/admin/promotions');
-
-  return (
-    <div>
-      {!hideNavbar && <Navbar />}
+import SupportPage from './pages/SupportPage';
+import AdminFeedbackPage from './pages/AdminFeedbackPage';
+import AdminComplaintsPage from './pages/AdminComplaintsPage';
+import AdminInventoryPage from './pages/AdminInventoryPage';
 import StaffOrdersPage from './pages/StaffOrdersPage';
 import StaffReportsPage from './pages/StaffReportsPage';
 import StaffPromotionSelection from './pages/StaffPromotionSelection';
 import StaffCanteenComplaintsPage from './pages/StaffCanteenComplaintsPage';
-import CanteenSelection from './pages/CanteenSelection';
-import SupportPage from './pages/SupportPage.jsx';
-import AdminFeedbackPage from './pages/AdminFeedbackPage.jsx';
-import AdminComplaintsPage from './pages/AdminComplaintsPage.jsx';
-import AdminInventoryPage from './pages/AdminInventoryPage.jsx';
 
 const App = () => {
   return (
-    <div>
+    <div className="min-h-screen bg-gray-50">
       <Routes>
         {/* Public Routes */}
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
 
-        {/* Staff Routes */}
+        {/* Student Routes - No login required for menu */}
+        <Route path="/menu" element={<SDMenuPage />} />
+
+        {/* Staff Routes - Only staff with assigned canteen */}
         <Route
           path="/inventory"
           element={
             <StaffProtectedRoute>
               <SDInventoryPage />
-            </StaffProtectedRoute>
-          }
-        />
-        <Route
-          path="/complaints"
-          element={
-            <StaffProtectedRoute>
-              <StaffCanteenComplaintsPage />
             </StaffProtectedRoute>
           }
         />
@@ -81,6 +66,14 @@ const App = () => {
           }
         />
         <Route
+          path="/complaints"
+          element={
+            <StaffProtectedRoute>
+              <StaffCanteenComplaintsPage />
+            </StaffProtectedRoute>
+          }
+        />
+        <Route
           path="/add-promotion"
           element={
             <StaffProtectedRoute>
@@ -88,35 +81,8 @@ const App = () => {
             </StaffProtectedRoute>
           }
         />
-        <Route
-          path="/add-promotion/new-canteen"
-          element={
-            <StaffProtectedRoute>
-              <AddNewCanteenPromotion />
-            </StaffProtectedRoute>
-          }
-        />
-        <Route
-          path="/add-promotion/basement-canteen"
-          element={
-            <StaffProtectedRoute>
-              <AddBasementCanteenPromotion />
-            </StaffProtectedRoute>
-          }
-        />
-        <Route
-          path="/add-promotion/anohana-canteen"
-          element={
-            <StaffProtectedRoute>
-              <AddAnohanaCanteenPromotion />
-            </StaffProtectedRoute>
-          }
-        />
 
-        {/* Student Routes */}
-        <Route path="/menu" element={<SDMenuPage />} />
-
-        {/* Protected User Routes */}
+        {/* Protected General User Routes (Students + Staff) */}
         <Route
           path="/dashboard"
           element={
@@ -134,7 +100,7 @@ const App = () => {
           }
         />
 
-        {/* Protected Admin Routes */}
+        {/* Admin Routes */}
         <Route
           path="/admin/dashboard"
           element={
@@ -151,37 +117,6 @@ const App = () => {
             </AdminProtectedRoute>
           }
         />
-        <Route
-          path="/promotions"
-          element={<DailyPromotions />}
-        />
-        <Route
-          path="/admin/promotions/new-canteen"
-          element={
-            <AdminProtectedRoute>
-              <AddNewCanteenPromotion />
-            </AdminProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/promotions/basement-canteen"
-          element={
-            <AdminProtectedRoute>
-              <AddBasementCanteenPromotion />
-            </AdminProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/promotions/anohana-canteen"
-          element={
-            <AdminProtectedRoute>
-              <AddAnohanaCanteenPromotion />
-            </AdminProtectedRoute>
-          }
-        />
-
-        {/* Support and admin pages */}
-        <Route path="/support" element={<SupportPage />} />
         <Route
           path="/admin/feedback"
           element={
@@ -207,15 +142,43 @@ const App = () => {
           }
         />
 
-        {/* Promotions */}
+        {/* Promotion Routes */}
         <Route path="/promotions" element={<DailyPromotions />} />
+        <Route
+          path="/admin/promotions/new-canteen"
+          element={
+            <AdminProtectedRoute>
+              <AddNewCanteenPromotion />
+            </AdminProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/promotions/basement-canteen"
+          element={
+            <AdminProtectedRoute>
+              <AddBasementCanteenPromotion />
+            </AdminProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/promotions/anohana-canteen"
+          element={
+            <AdminProtectedRoute>
+              <AddAnohanaCanteenPromotion />
+            </AdminProtectedRoute>
+          }
+        />
+
+        {/* Support */}
+        <Route path="/support" element={<SupportPage />} />
 
         {/* Default Route */}
         <Route path="/" element={<Navigate to="/login" replace />} />
 
-        {/* Catch all - 404 */}
+        {/* Catch-all 404 */}
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
+
       <Toaster position="top-right" />
     </div>
   );
