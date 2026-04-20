@@ -30,6 +30,17 @@ import AdminComplaintsPage from './pages/AdminComplaintsPage.jsx';
 import AdminInventoryPage from './pages/AdminInventoryPage.jsx';
 
 const App = () => {
+<<<<<<< HEAD
+=======
+  const location = useLocation();
+
+  // hide navbar in selected routes
+  const hideNavbarRoutes = ["/cart", "/booking", "/order-status"];
+  const hideNavbar =
+    location.pathname.startsWith("/admin") ||
+    hideNavbarRoutes.includes(location.pathname);
+
+>>>>>>> d850e67 (update)
   return (
     <div>
       <Routes>
@@ -199,11 +210,109 @@ const App = () => {
         {/* Default Route */}
         <Route path="/" element={<Navigate to="/login" replace />} />
 
+<<<<<<< HEAD
         {/* Catch all - 404 */}
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
       <Toaster position="top-right" />
     </div>
+=======
+          <Route
+            path="/admin/analytics"
+            element={
+              <AdminProtectedRoute>
+                <Analytics />
+              </AdminProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/admin/promotions"
+            element={
+              <AdminProtectedRoute>
+                <CanteenSelection />
+              </AdminProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/admin/promotions/new-canteen"
+            element={
+              <AdminProtectedRoute>
+                <AddNewCanteenPromotion />
+              </AdminProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/admin/promotions/basement-canteen"
+            element={
+              <AdminProtectedRoute>
+                <AddBasementCanteenPromotion />
+              </AdminProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/admin/promotions/anohana-canteen"
+            element={
+              <AdminProtectedRoute>
+                <AddAnohanaCanteenPromotion />
+              </AdminProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/admin/orders"
+            element={
+              <AdminProtectedRoute>
+                <AdminViewOrders />
+              </AdminProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/admin/inventory"
+            element={
+              <AdminProtectedRoute>
+                <SDInventoryPage />
+              </AdminProtectedRoute>
+            }
+          />
+
+          {/* SUPPORT */}
+          <Route path="/support" element={<SupportPage />} />
+          <Route
+            path="/admin/feedback"
+            element={
+              <AdminProtectedRoute>
+                <AdminFeedbackPage />
+              </AdminProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/complaints"
+            element={
+              <AdminProtectedRoute>
+                <AdminComplaintsPage />
+              </AdminProtectedRoute>
+            }
+          />
+
+          {/* PROMOTIONS */}
+          <Route path="/promotions" element={<DailyPromotions />} />
+
+          {/* DEFAULT */}
+          <Route path="/" element={<Navigate to="/login" replace />} />
+
+          {/* 404 */}
+          <Route path="*" element={<Navigate to="/login" replace />} />
+        </Routes>
+
+        <Toaster position="top-right" />
+      </div>
+    </CartProvider>
+>>>>>>> d850e67 (update)
   );
 };
 
