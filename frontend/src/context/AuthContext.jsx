@@ -3,6 +3,42 @@ import axios from 'axios';
 
 const AuthContext = createContext();
 
+<<<<<<< HEAD
+=======
+const api = axios.create({
+  baseURL: "http://localhost:5001",
+});
+
+const parseJwtPayload = (value) => {
+  try {
+    const parts = value?.split(".");
+    if (!parts || parts.length < 2) {
+      return null;
+    }
+
+    const payload = parts[1]
+      .replace(/-/g, "+")
+      .replace(/_/g, "/")
+      .padEnd(Math.ceil(parts[1].length / 4) * 4, "=");
+
+    return JSON.parse(atob(payload));
+  } catch {
+    return null;
+  }
+};
+
+const isTokenExpired = (value) => {
+  const payload = parseJwtPayload(value);
+
+  if (!payload?.exp) {
+    return false;
+  }
+
+  const nowInSeconds = Math.floor(Date.now() / 1000);
+  return payload.exp <= nowInSeconds;
+};
+
+>>>>>>> 6407edb (update)
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(localStorage.getItem('token') || null);
@@ -25,6 +61,7 @@ export const AuthProvider = ({ children }) => {
   // Load user from token on app start
   useEffect(() => {
     const loadUser = async () => {
+<<<<<<< HEAD
       if (token) {
         try {
           const res = await api.get('/api/auth/me');
@@ -33,6 +70,25 @@ export const AuthProvider = ({ children }) => {
           console.error('Failed to load user:', error);
           logout();
         }
+=======
+      if (!token) {
+        setLoading(false);
+        return;
+      }
+
+      if (isTokenExpired(token)) {
+        logout();
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const res = await api.get("/api/auth/me");
+        setUser(res.data);
+      } catch (error) {
+        console.error("Failed to load user:", error);
+        logout();
+>>>>>>> 6407edb (update)
       }
       setLoading(false);
     };

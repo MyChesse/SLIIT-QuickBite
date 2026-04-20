@@ -22,7 +22,22 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+<<<<<<< HEAD
     console.error('API Error:', error);
+=======
+    const status = error?.response?.status;
+    const url = error?.config?.url || "unknown-url";
+
+    if (status === 401) {
+      localStorage.removeItem("token");
+    }
+
+    if (status) {
+      console.error(`API Error ${status} at ${url}`);
+    } else {
+      console.error(`API Error at ${url}`);
+    }
+>>>>>>> 6407edb (update)
     return Promise.reject(error);
   }
 );
