@@ -1,30 +1,27 @@
-import axios from 'axios';
+import axios from "axios";
 
 const api = axios.create({
-  baseURL: 'http://localhost:5001/api',
+  baseURL: "http://localhost:5001/api",
   timeout: 10000,
   headers: {
-    'Content-Type': 'application/json'
-  }
+    "Content-Type": "application/json",
+  },
 });
 
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => Promise.reject(error),
 );
 
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-<<<<<<< HEAD
-    console.error('API Error:', error);
-=======
     const status = error?.response?.status;
     const url = error?.config?.url || "unknown-url";
 
@@ -37,14 +34,13 @@ api.interceptors.response.use(
     } else {
       console.error(`API Error at ${url}`);
     }
->>>>>>> 6407edb (update)
     return Promise.reject(error);
-  }
+  },
 );
 
 export const feedbackAPI = {
   submitFeedback: async (feedbackData) => {
-    const response = await api.post('/feedback', feedbackData);
+    const response = await api.post("/feedback", feedbackData);
     return response.data;
   },
   getAllFeedback: async (filters = {}) => {
@@ -63,7 +59,7 @@ export const feedbackAPI = {
   deleteFeedback: async (id) => {
     const response = await api.delete(`/feedback/${id}`);
     return response.data;
-  }
+  },
 };
 
 export const complaintAPI = {
@@ -73,12 +69,12 @@ export const complaintAPI = {
       formData.append(key, complaintData[key]);
     });
     if (photoFile) {
-      formData.append('photo', photoFile);
+      formData.append("photo", photoFile);
     }
-    const response = await api.post('/complaints', formData, {
+    const response = await api.post("/complaints", formData, {
       headers: {
-        'Content-Type': 'multipart/form-data'
-      }
+        "Content-Type": "multipart/form-data",
+      },
     });
     return response.data;
   },
@@ -110,11 +106,11 @@ export const complaintAPI = {
   deleteComplaint: async (id) => {
     const response = await api.delete(`/complaints/${id}`);
     return response.data;
-  }
+  },
 };
 
 export const healthCheck = async () => {
-  const response = await api.get('/health');
+  const response = await api.get("/health");
   return response.data;
 };
 
