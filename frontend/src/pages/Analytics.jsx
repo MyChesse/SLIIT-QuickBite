@@ -24,18 +24,19 @@ const formatMoney = (value) =>
   })}`;
 
 const normalizeCanteenName = (canteenName) => {
-  switch ((canteenName || "").trim()) {
-    case "New canteen":
-    case "New Canteen":
-      return "Main Canteen";
-    case "Basement canteen":
-    case "Basement Canteen":
-      return "Hostel Canteen";
-    case "Anohana Canteen":
-      return "Mini Canteen";
-    default:
-      return (canteenName || "Unknown Canteen").trim();
+  const raw = String(canteenName || "").trim();
+  if (!raw) return "Unknown Canteen";
+
+  const key = raw.toLowerCase();
+  if (key.includes("new")) return "Main Canteen";
+  if (key.includes("basement") || key.includes("hostel")) {
+    return "Hostel Canteen";
   }
+  if (key.includes("anohana") || key.includes("mini")) {
+    return "Mini Canteen";
+  }
+
+  return raw;
 };
 
 const isKnownCanteen = (canteenName) => {
@@ -44,11 +45,6 @@ const isKnownCanteen = (canteenName) => {
     .toLowerCase();
   return value && value !== "unknown" && value !== "unknown canteen";
 };
-
-const isMiniCanteen = (canteenName) =>
-  String(canteenName || "")
-    .trim()
-    .toLowerCase() === "mini canteen";
 
 const toPercent = (value, total) => {
   if (!total) return 0;
@@ -196,7 +192,6 @@ const Analytics = () => {
         item?.canteenId?.name || item?.canteenName,
       );
       if (!isKnownCanteen(canteenName)) return;
-      if (isMiniCanteen(canteenName)) return;
       if (!itemToCanteenMap.has(itemName)) {
         itemToCanteenMap.set(itemName, canteenName);
       }
@@ -240,7 +235,7 @@ const Analytics = () => {
             ? mappedCanteenName
             : null;
 
-        if (!canteenName || isMiniCanteen(canteenName)) return;
+        if (!canteenName) return;
 
         const canteen = ensureCanteen(canteenName);
         canteen.totalItemsOrdered += itemQty;
@@ -274,7 +269,6 @@ const Analytics = () => {
     complaints.forEach((complaint) => {
       const canteen = normalizeCanteenName(complaint.canteen);
       if (!isKnownCanteen(canteen)) return;
-      if (isMiniCanteen(canteen)) return;
       complaintMap.set(canteen, (complaintMap.get(canteen) || 0) + 1);
     });
 
@@ -282,7 +276,6 @@ const Analytics = () => {
     feedbacks.forEach((feedback) => {
       const canteen = normalizeCanteenName(feedback.canteen);
       if (!isKnownCanteen(canteen)) return;
-      if (isMiniCanteen(canteen)) return;
       const current = feedbackMap.get(canteen) || { count: 0, ratingSum: 0 };
       current.count += 1;
       current.ratingSum += Number(feedback.rating || 0);
@@ -290,9 +283,7 @@ const Analytics = () => {
     });
 
     const feedbackRows = PRIMARY_CANTEENS.map((canteen) => {
-      const stats = isMiniCanteen(canteen)
-        ? { count: 0, ratingSum: 0 }
-        : feedbackMap.get(canteen) || { count: 0, ratingSum: 0 };
+      const stats = feedbackMap.get(canteen) || { count: 0, ratingSum: 0 };
       return {
         canteen,
         count: stats.count,
@@ -304,7 +295,7 @@ const Analytics = () => {
 
     const complaintRows = PRIMARY_CANTEENS.map((canteen) => ({
       canteen,
-      count: isMiniCanteen(canteen) ? 0 : complaintMap.get(canteen) || 0,
+      count: complaintMap.get(canteen) || 0,
     })).sort((a, b) => b.count - a.count);
 
     return {
