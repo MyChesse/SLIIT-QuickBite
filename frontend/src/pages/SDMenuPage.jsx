@@ -127,6 +127,23 @@ const SDMenuPage = () => {
       )
     : null;
 
+  const promoOriginalPrice = Number(dailyPromotionForCanteen?.originalPrice);
+  const promoDiscountedPrice = Number(
+    dailyPromotionForCanteen?.discountedPrice,
+  );
+  const hasValidPromotionPrices =
+    Number.isFinite(promoOriginalPrice) &&
+    Number.isFinite(promoDiscountedPrice) &&
+    promoOriginalPrice > 0 &&
+    promoDiscountedPrice >= 0 &&
+    promoOriginalPrice >= promoDiscountedPrice;
+  const promoDiscountValue = hasValidPromotionPrices
+    ? promoOriginalPrice - promoDiscountedPrice
+    : 0;
+  const promoDiscountPercentage = hasValidPromotionPrices
+    ? Math.round((promoDiscountValue / promoOriginalPrice) * 100)
+    : 0;
+
   const getFeedbackCanteenLabel = (canteen) => {
     const normalizedCanteen = canteen?.trim();
 
@@ -217,12 +234,16 @@ const SDMenuPage = () => {
 
               <div className="flex flex-col justify-between p-6 lg:p-8">
                 <div>
-                  <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-blue-50 px-4 py-1.5 text-xs font-semibold text-blue-700">
-                    <span className="material-symbols-outlined text-base">
-                      local_fire_department
+                  <div className="mb-4 flex flex-wrap items-center gap-2">
+                    <span className="inline-flex items-center gap-2 rounded-full bg-blue-50 px-4 py-1.5 text-xs font-semibold text-blue-700">
+                      <span className="material-symbols-outlined text-base">
+                        local_fire_department
+                      </span>
+                      DAILY PROMOTION
                     </span>
-                    DAILY PROMOTION ·{" "}
-                    {selectedCanteenName || "Selected Canteen"}
+                    <span className="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
+                      {selectedCanteenName || "Selected Canteen"}
+                    </span>
                   </div>
 
                   <h2 className="text-3xl font-black leading-tight text-slate-900">
@@ -236,26 +257,39 @@ const SDMenuPage = () => {
                 </div>
 
                 <div className="mt-6">
-                  <div className="mb-4 flex items-end justify-between gap-4">
-                    <div>
-                      <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
+                    <div className="rounded-2xl border border-blue-200 bg-blue-50 p-3">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-blue-700">
                         Now
                       </p>
-                      <p className="text-3xl font-black text-blue-700">
+                      <p className="mt-1 text-2xl font-black text-blue-800">
                         Rs. {dailyPromotionForCanteen.discountedPrice}
                       </p>
                     </div>
-                    <div className="text-right">
-                      <p className="text-xs text-slate-500">Was</p>
-                      <p className="text-sm text-slate-400 line-through">
+
+                    <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                        Was
+                      </p>
+                      <p className="mt-1 text-lg font-bold text-slate-500 line-through">
                         Rs. {dailyPromotionForCanteen.originalPrice}
+                      </p>
+                    </div>
+
+                    <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-3">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-emerald-700">
+                        Discount
+                      </p>
+                      <p className="mt-1 text-sm font-extrabold text-emerald-800">
+                        Rs. {promoDiscountValue.toFixed(2)} (
+                        {promoDiscountPercentage}%)
                       </p>
                     </div>
                   </div>
 
                   <button
                     onClick={handleAddPromotionToCart}
-                    className="inline-flex items-center gap-2 rounded-2xl bg-blue-600 px-6 py-3 text-sm font-bold text-white transition hover:bg-blue-700"
+                    className="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-2xl bg-blue-600 px-6 py-3 text-sm font-bold text-white transition hover:bg-blue-700"
                   >
                     Add Promotion to Cart
                     <span className="material-symbols-outlined text-lg">
