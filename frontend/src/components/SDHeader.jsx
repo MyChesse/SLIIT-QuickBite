@@ -9,7 +9,6 @@ import api from "../services/api";
 const SDHeader = () => {
   const { user, logout, isAuthenticated } = useAuth();
   const navigate = useNavigate();
-  const [searchTerm, setSearchTerm] = useState("");
   const { cart } = useContext(CartContext);
   const [pendingOrders, setPendingOrders] = useState(0);
 
@@ -60,7 +59,7 @@ const SDHeader = () => {
     <nav className="fixed top-0 left-0 w-full z-50 bg-white border-b border-gray-200 shadow-sm">
       <div className="max-w-7xl mx-auto h-20 px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4">
         {/* Left Side */}
-        <div className="flex items-center gap-4 lg:gap-6 min-w-0 lg:min-w-[260px]">
+        <div className="flex items-center gap-4 lg:gap-6 min-w-0">
           <Link
             to={
               isAuthenticated
@@ -84,26 +83,8 @@ const SDHeader = () => {
           </div>
         </div>
 
-        {/* Center Search */}
-        <div className="flex-1 flex justify-center">
-          <div className="w-full max-w-xl">
-            <div className="relative">
-              <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-xl">
-                search
-              </span>
-              <input
-                type="text"
-                placeholder="Search menu items..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-12 pr-5 py-3 text-gray-700 bg-gray-100 border border-transparent rounded-full focus:border-blue-300 focus:bg-white focus:ring-2 focus:ring-blue-200 text-sm outline-none transition"
-              />
-            </div>
-          </div>
-        </div>
-
         {/* Right Side */}
-        <div className="flex items-center justify-end gap-3 sm:gap-4 lg:min-w-[300px]">
+        <div className="flex items-center justify-end gap-3 sm:gap-4">
           <div className="hidden xl:flex items-center gap-3">
             <Link
               to="/promotions"
