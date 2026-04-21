@@ -3,6 +3,7 @@ import { useNavigate } from "react-router";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import api from "../services/api";
+import { useAuth } from "../context/AuthContext";
 
 const formatMoney = (value) =>
   `Rs. ${Number(value || 0).toLocaleString("en-LK", {
@@ -58,26 +59,71 @@ const getOrderTime = (order) => {
   return 0;
 };
 
+const compareCompletedOrders = (leftOrder, rightOrder) => {
+  const timeDifference = getOrderTime(rightOrder) - getOrderTime(leftOrder);
+  if (timeDifference !== 0) {
+    return timeDifference;
+  }
+
+  const leftCreatedAt = Date.parse(leftOrder?.createdAt || "");
+  const rightCreatedAt = Date.parse(rightOrder?.createdAt || "");
+  if (!Number.isNaN(rightCreatedAt) || !Number.isNaN(leftCreatedAt)) {
+    return (
+      (Number.isNaN(rightCreatedAt) ? 0 : rightCreatedAt) -
+      (Number.isNaN(leftCreatedAt) ? 0 : leftCreatedAt)
+    );
+  }
+
+  return String(rightOrder?._id || "").localeCompare(
+    String(leftOrder?._id || ""),
+  );
+};
+
 const CompletedOrders = () => {
   const navigate = useNavigate();
+  const { user, loading: authLoading } = useAuth();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [receiptLoadingId, setReceiptLoadingId] = useState("");
+
+  const currentStudentIds = [user?.userId, user?.studentId]
+    .map((value) =>
+      String(value || "")
+        .trim()
+        .toUpperCase(),
+    )
+    .filter(Boolean);
 
   const fetchOrders = async () => {
     try {
       setLoading(true);
       setError("");
       const response = await api.get("/orders");
-      const completed = (Array.isArray(response.data) ? response.data : [])
+      const allCompleted = (Array.isArray(response.data) ? response.data : [])
         .filter((order) => order.status === "Completed")
-        .sort((a, b) => getOrderTime(b) - getOrderTime(a));
-      setOrders(completed);
+        .sort(compareCompletedOrders);
+
+      const filteredCompleted = allCompleted
+        .filter((order) => {
+          if (!currentStudentIds.length) {
+            return true;
+          }
+
+          const orderStudentId = String(order?.studentId || "")
+            .trim()
+            .toUpperCase();
+          return currentStudentIds.includes(orderStudentId);
+        })
+        .sort(compareCompletedOrders);
+
+      // If profile identifiers don't line up with saved order student IDs,
+      // keep the full completed list instead of showing an empty state.
+      setOrders(filteredCompleted.length ? filteredCompleted : allCompleted);
     } catch (err) {
       console.error("Failed to load completed orders:", err);
       setError(
-        err.response?.data?.message || "Failed to load completed orders",
+        err.response?.data?.message || "Failed to load your completed orders",
       );
     } finally {
       setLoading(false);
@@ -85,13 +131,21 @@ const CompletedOrders = () => {
   };
 
   useEffect(() => {
+    if (authLoading) {
+      return;
+    }
     fetchOrders();
-  }, []);
+  }, [authLoading, currentStudentIds.join("|")]);
 
   const totalCompletedAmount = useMemo(
     () => orders.reduce((sum, order) => sum + Number(order.total || 0), 0),
     [orders],
   );
+
+  const latestCompletionLabel = useMemo(() => {
+    if (!orders.length) return "No completed orders yet";
+    return formatDateTime(orders[0]?.completedAt || orders[0]?.createdAt);
+  }, [orders]);
 
   const downloadReceipt = async (order) => {
     const orderId = String(order?._id || "");
@@ -261,14 +315,14 @@ const CompletedOrders = () => {
         <div className="mb-8 flex flex-col gap-4 rounded-[28px] border border-slate-200 bg-white px-6 py-5 shadow-sm sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.28em] text-emerald-600">
-              Order Archive
+              User Order History
             </p>
             <h1 className="mt-2 text-3xl font-black text-slate-900">
-              Completed Orders
+              My Completed Orders
             </h1>
             <p className="mt-2 text-sm text-slate-500">
-              View all finished orders and the total cash collected from menu
-              sales.
+              Your completed pickups are shown here. Newer completed orders are
+              listed at the top.
             </p>
           </div>
           <div className="flex gap-3">
@@ -290,7 +344,7 @@ const CompletedOrders = () => {
         <div className="mb-6 grid gap-4 md:grid-cols-3">
           <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-5 shadow-sm">
             <p className="text-xs font-semibold uppercase tracking-wide text-emerald-700">
-              Completed Orders
+              My Completed Orders
             </p>
             <p className="mt-2 text-3xl font-black text-emerald-900">
               {orders.length}
@@ -298,7 +352,7 @@ const CompletedOrders = () => {
           </div>
           <div className="rounded-2xl border border-sky-200 bg-sky-50 p-5 shadow-sm">
             <p className="text-xs font-semibold uppercase tracking-wide text-sky-700">
-              Total Collected
+              Total Spent
             </p>
             <p className="mt-2 text-3xl font-black text-sky-900">
               {formatMoney(totalCompletedAmount)}
@@ -306,17 +360,17 @@ const CompletedOrders = () => {
           </div>
           <div className="rounded-2xl border border-violet-200 bg-violet-50 p-5 shadow-sm">
             <p className="text-xs font-semibold uppercase tracking-wide text-violet-700">
-              Current Status Display
+              Latest Completion
             </p>
-            <p className="mt-2 text-3xl font-black text-violet-900">
-              Completed
+            <p className="mt-2 text-base font-extrabold text-violet-900">
+              {latestCompletionLabel}
             </p>
           </div>
         </div>
 
         {loading ? (
           <div className="rounded-3xl border border-dashed border-slate-300 bg-white p-10 text-center text-slate-600 shadow-sm">
-            Loading completed orders...
+            Loading your completed orders...
           </div>
         ) : error ? (
           <div className="rounded-3xl border border-red-200 bg-red-50 p-6 text-center text-red-700 shadow-sm">
@@ -324,7 +378,26 @@ const CompletedOrders = () => {
           </div>
         ) : orders.length === 0 ? (
           <div className="rounded-3xl border border-dashed border-slate-300 bg-white p-10 text-center text-slate-600 shadow-sm">
-            No completed orders found yet.
+            <p className="text-lg font-semibold text-slate-700">
+              No completed orders yet.
+            </p>
+            <p className="mt-2 text-sm text-slate-500">
+              When you complete orders from Order Status, they will appear here.
+            </p>
+            <div className="mt-5 flex flex-wrap justify-center gap-3">
+              <button
+                onClick={() => navigate("/order-status")}
+                className="rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+              >
+                Go to Order Status
+              </button>
+              <button
+                onClick={() => navigate("/menu")}
+                className="rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700"
+              >
+                Browse Menu
+              </button>
+            </div>
           </div>
         ) : (
           <div className="grid gap-5 lg:grid-cols-2">
@@ -376,6 +449,12 @@ const CompletedOrders = () => {
                   <p>
                     <span className="font-semibold text-slate-800">Total:</span>{" "}
                     {formatMoney(order.total)}
+                  </p>
+                  <p className="sm:col-span-2">
+                    <span className="font-semibold text-slate-800">
+                      Completed At:
+                    </span>{" "}
+                    {formatDateTime(order.completedAt || order.createdAt)}
                   </p>
                 </div>
 
