@@ -16,6 +16,7 @@ const BookingPage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [showPendingMessage, setShowPendingMessage] = useState(false);
 
   const studentId = `IT${studentIdDigits}`;
 
@@ -30,9 +31,7 @@ const BookingPage = () => {
       .join(" ");
 
   const handleStudentIdChange = (e) => {
-    const raw = e.target.value.toUpperCase();
-    const withoutPrefix = raw.startsWith("IT") ? raw.slice(2) : raw;
-    const digitsOnly = withoutPrefix.replace(/\D/g, "").slice(0, 8);
+    const digitsOnly = e.target.value.replace(/\D/g, "").slice(0, 8);
     setStudentIdDigits(digitsOnly);
   };
 
@@ -98,7 +97,8 @@ const BookingPage = () => {
 
       const res = await api.post("/orders/create", orderData);
 
-      setSuccess("Order Placed Successfully!");
+      setSuccess("Your Order is Pending");
+      setShowPendingMessage(true);
       clearCart();
 
       setTimeout(() => {
@@ -212,14 +212,18 @@ const BookingPage = () => {
                 <label className="mb-1 block text-sm font-semibold text-slate-700">
                   Student ID
                 </label>
-                <div className="relative">
+                <div className="flex overflow-hidden rounded-xl border border-slate-300 focus-within:border-sky-500">
+                  <span className="inline-flex items-center bg-slate-100 px-4 font-bold tracking-wider text-slate-700">
+                    IT
+                  </span>
                   <input
                     type="text"
-                    placeholder="IT12345678"
-                    value={studentId}
+                    inputMode="numeric"
+                    placeholder="12345678"
+                    value={studentIdDigits}
                     onChange={handleStudentIdChange}
-                    className="w-full rounded-xl border border-slate-300 px-4 py-3 font-semibold tracking-wide outline-none transition focus:border-sky-500"
-                    maxLength={10}
+                    className="w-full px-4 py-3 font-semibold tracking-wide outline-none"
+                    maxLength={8}
                     required
                   />
                 </div>
@@ -267,6 +271,25 @@ const BookingPage = () => {
             </div>
           </form>
         </div>
+
+        {showPendingMessage && (
+          <div className="mx-auto mt-8 max-w-xl rounded-2xl border border-amber-300 bg-amber-50 p-6 text-center shadow-sm">
+            <h3 className="text-2xl font-black text-amber-700">
+              Your Order is Pending
+            </h3>
+            <p className="mt-2 text-sm text-amber-800">
+              We have received your booking. You can check live status from
+              Orders.
+            </p>
+            <button
+              type="button"
+              onClick={() => navigate("/menu")}
+              className="mt-4 rounded-xl bg-sky-600 px-5 py-2.5 font-semibold text-white hover:bg-sky-700"
+            >
+              Go To Menu Page
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

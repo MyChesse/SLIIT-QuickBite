@@ -62,6 +62,11 @@ const OrderSchema = new mongoose.Schema({
     default: "",
   },
 
+  completedAt: {
+    type: Date,
+    default: null,
+  },
+
   createdAt: {
     type: Date,
     default: Date.now,

@@ -1,13 +1,41 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import axios from "axios";
+import { jsPDF } from "jspdf";
+import autoTable from "jspdf-autotable";
 import toast from "react-hot-toast";
 import { useAuth } from "../context/AuthContext";
 import api from "../services/api";
+import AdminSidebarLayout from "../components/AdminSidebarLayout";
 
 const SERVER_BASE_URL = (
   import.meta.env.VITE_API_URL || "http://localhost:5001"
 ).replace(/\/api\/?$/, "");
+
+const displayStatus = (status) =>
+  status === "Accepted" ? "Preparing" : status;
+
+const formatMoney = (value) =>
+  `Rs. ${Number(value || 0).toLocaleString("en-LK", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
+
+const formatDateTime = (value) => {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "-";
+  return date.toLocaleString("en-LK", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  });
+};
+
+const sanitizeFileName = (value) =>
+  String(value || "report")
+    .replace(/[^a-z0-9-_]+/gi, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "")
+    .toLowerCase();
 
 const AdminViewOrders = () => {
   const { token, user } = useAuth();
@@ -123,7 +151,7 @@ const AdminViewOrders = () => {
           throw adminError;
         }
       }
-      toast.success("Order accepted");
+      toast.success("Order moved to preparing");
       await fetchOrders();
     } catch (error) {
       toast.error(getErrorMessage(error, "Failed to accept order"));
@@ -201,6 +229,118 @@ const AdminViewOrders = () => {
       cancelled: orders.filter((o) => o.status === "Cancelled"),
     };
   }, [orders]);
+
+  const summary = useMemo(() => {
+    const activeOrders = orders.filter((order) => order.status !== "Cancelled");
+    const grossValue = activeOrders.reduce(
+      (sum, order) => sum + Number(order.total || 0),
+      0,
+    );
+    const completedValue = grouped.completed.reduce(
+      (sum, order) => sum + Number(order.total || 0),
+      0,
+    );
+
+    return {
+      totalOrders: orders.length,
+      activeOrders: activeOrders.length,
+      grossValue,
+      completedValue,
+      pendingCount: grouped.pending.length,
+      preparingCount: grouped.accepted.length,
+      readyCount: grouped.ready.length,
+      completedCount: grouped.completed.length,
+      cancelledCount: grouped.cancelled.length,
+    };
+  }, [orders, grouped]);
+
+  const generatePdfReport = () => {
+    if (!orders.length) {
+      toast.error("No orders available to export");
+      return;
+    }
+
+    try {
+      const doc = new jsPDF();
+      const pageWidth = doc.internal.pageSize.getWidth();
+
+      doc.setFillColor(15, 23, 42);
+      doc.rect(0, 0, pageWidth, 30, "F");
+      doc.setTextColor(255, 255, 255);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(18);
+      doc.text("QuickBite Admin Orders Report", 14, 19);
+
+      doc.setTextColor(15, 23, 42);
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "normal");
+      doc.text(`Generated: ${formatDateTime(new Date())}`, 14, 40);
+      doc.text(
+        `Totals - Orders: ${summary.totalOrders}, Gross Value: ${formatMoney(summary.grossValue)}, Completed Cash: ${formatMoney(summary.completedValue)}`,
+        14,
+        46,
+      );
+
+      autoTable(doc, {
+        startY: 52,
+        head: [["Metric", "Value"]],
+        body: [
+          ["Total Orders", String(summary.totalOrders)],
+          ["Active Orders", String(summary.activeOrders)],
+          ["Pending Orders", String(summary.pendingCount)],
+          ["Preparing Orders", String(summary.preparingCount)],
+          ["Ready Orders", String(summary.readyCount)],
+          ["Completed Orders", String(summary.completedCount)],
+          ["Cancelled Orders", String(summary.cancelledCount)],
+          ["Gross Value", formatMoney(summary.grossValue)],
+          ["Completed Cash", formatMoney(summary.completedValue)],
+        ],
+        headStyles: { fillColor: [30, 64, 175] },
+      });
+
+      autoTable(doc, {
+        startY: (doc.lastAutoTable?.finalY || 80) + 8,
+        head: [["Order ID", "Student", "Status", "Items", "Total"]],
+        body: orders.map((order) => [
+          String(order._id || "-"),
+          `${order.studentName || "-"} (${order.studentId || "-"})`,
+          displayStatus(order.status),
+          String(
+            (order.items || []).reduce(
+              (count, item) => count + Number(item.quantity || 0),
+              0,
+            ),
+          ),
+          formatMoney(order.total),
+        ]),
+        headStyles: { fillColor: [14, 116, 144] },
+        styles: { fontSize: 9 },
+      });
+
+      autoTable(doc, {
+        startY: (doc.lastAutoTable?.finalY || 120) + 8,
+        head: [["Order ID", "Item", "Qty", "Unit", "Line Total"]],
+        body: orders.flatMap((order) =>
+          (order.items || []).map((item) => [
+            String(order._id || "-"),
+            item.name,
+            String(item.quantity),
+            formatMoney(item.price),
+            formatMoney(item.price * item.quantity),
+          ]),
+        ),
+        headStyles: { fillColor: [5, 150, 105] },
+        styles: { fontSize: 8 },
+      });
+
+      const fileName = `quickbite-admin-orders-${sanitizeFileName(new Date().toISOString())}.pdf`;
+      doc.save(fileName);
+      toast.success("PDF report generated");
+    } catch (error) {
+      console.error("Failed to generate admin PDF report:", error);
+      toast.error("Failed to generate PDF report");
+    }
+  };
 
   const renderOrderCard = (order) => {
     const busy = actionLoadingId === order._id;
@@ -287,7 +427,7 @@ const AdminViewOrders = () => {
             order.status === "Completed" ||
             order.status === "Cancelled") && (
             <span className="inline-flex px-3 py-1 rounded-full bg-slate-100 text-slate-700 text-xs font-semibold">
-              {order.status}
+              {displayStatus(order.status)}
             </span>
           )}
         </div>
@@ -313,95 +453,106 @@ const AdminViewOrders = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#f5f7fb] text-slate-800 px-4 py-4 sm:px-6 lg:px-8">
-      <div className="bg-white border border-slate-200 rounded-[24px] px-5 py-4 shadow-sm mb-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-[30px] font-bold text-blue-900 tracking-tight">
-              Admin Orders
-            </h1>
-            <p className="text-sm text-slate-500 mt-1">
-              Accept pending orders and mark accepted orders as ready.
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={fetchOrders}
-              className="h-11 px-4 rounded-xl border border-slate-200 bg-white text-slate-600 text-sm font-medium hover:bg-slate-50"
-            >
-              Refresh
-            </button>
-            <button
-              onClick={() => navigate("/admin/dashboard")}
-              className="h-11 px-4 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700"
-            >
-              Back to Dashboard
-            </button>
+    <AdminSidebarLayout
+      activePage="orders"
+      contentClassName="px-4 py-4 sm:px-6 lg:px-8"
+    >
+      <div className="min-h-screen bg-[#f5f7fb] text-slate-800">
+        <div className="bg-white border border-slate-200 rounded-[24px] px-5 py-4 shadow-sm mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <h1 className="text-[30px] font-bold text-blue-900 tracking-tight">
+                Admin Orders
+              </h1>
+              <p className="text-sm text-slate-500 mt-1">
+                Accept pending orders, prepare them, and mark them ready.
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={fetchOrders}
+                className="h-11 px-4 rounded-xl border border-slate-200 bg-white text-slate-600 text-sm font-medium hover:bg-slate-50"
+              >
+                Refresh
+              </button>
+              <button
+                onClick={generatePdfReport}
+                className="h-11 px-4 rounded-xl border border-blue-200 bg-blue-50 text-blue-700 text-sm font-semibold hover:bg-blue-100"
+              >
+                Download PDF
+              </button>
+              <button
+                onClick={() => navigate("/admin/dashboard")}
+                className="h-11 px-4 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700"
+              >
+                Back to Dashboard
+              </button>
+            </div>
           </div>
         </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          <section className="bg-[#fff7ed] border border-orange-200 rounded-2xl p-4">
+            <h2 className="text-sm font-bold text-orange-700 mb-3">
+              Pending ({grouped.pending.length})
+            </h2>
+            <div className="space-y-3">
+              {grouped.pending.length > 0 ? (
+                grouped.pending.map(renderOrderCard)
+              ) : (
+                <p className="text-sm text-orange-700/70">No pending orders.</p>
+              )}
+            </div>
+          </section>
+
+          <section className="bg-[#eff6ff] border border-blue-200 rounded-2xl p-4">
+            <h2 className="text-sm font-bold text-blue-700 mb-3">
+              Preparing ({grouped.accepted.length})
+            </h2>
+            <div className="space-y-3">
+              {grouped.accepted.length > 0 ? (
+                grouped.accepted.map(renderOrderCard)
+              ) : (
+                <p className="text-sm text-blue-700/70">No preparing orders.</p>
+              )}
+            </div>
+          </section>
+
+          <section className="bg-[#ecfdf5] border border-emerald-200 rounded-2xl p-4">
+            <h2 className="text-sm font-bold text-emerald-700 mb-3">
+              Ready ({grouped.ready.length})
+            </h2>
+            <div className="space-y-3">
+              {grouped.ready.length > 0 ? (
+                grouped.ready.map(renderOrderCard)
+              ) : (
+                <p className="text-sm text-emerald-700/70">No ready orders.</p>
+              )}
+            </div>
+          </section>
+
+          <section className="bg-[#f8fafc] border border-slate-200 rounded-2xl p-4">
+            <h2 className="text-sm font-bold text-slate-700 mb-3">
+              Completed ({grouped.completed.length})
+            </h2>
+            <div className="space-y-3">
+              {grouped.completed.length > 0 ? (
+                grouped.completed.map(renderOrderCard)
+              ) : (
+                <p className="text-sm text-slate-500">No completed orders.</p>
+              )}
+            </div>
+          </section>
+        </div>
+
+        <div className="mt-6 bg-white border border-slate-200 rounded-2xl p-4 text-sm text-slate-600">
+          Logged in as:{" "}
+          <span className="font-semibold text-slate-800">
+            {user?.name || "Admin"}
+          </span>
+        </div>
       </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-        <section className="bg-[#fff7ed] border border-orange-200 rounded-2xl p-4">
-          <h2 className="text-sm font-bold text-orange-700 mb-3">
-            Pending ({grouped.pending.length})
-          </h2>
-          <div className="space-y-3">
-            {grouped.pending.length > 0 ? (
-              grouped.pending.map(renderOrderCard)
-            ) : (
-              <p className="text-sm text-orange-700/70">No pending orders.</p>
-            )}
-          </div>
-        </section>
-
-        <section className="bg-[#eff6ff] border border-blue-200 rounded-2xl p-4">
-          <h2 className="text-sm font-bold text-blue-700 mb-3">
-            Accepted ({grouped.accepted.length})
-          </h2>
-          <div className="space-y-3">
-            {grouped.accepted.length > 0 ? (
-              grouped.accepted.map(renderOrderCard)
-            ) : (
-              <p className="text-sm text-blue-700/70">No accepted orders.</p>
-            )}
-          </div>
-        </section>
-
-        <section className="bg-[#ecfdf5] border border-emerald-200 rounded-2xl p-4">
-          <h2 className="text-sm font-bold text-emerald-700 mb-3">
-            Ready ({grouped.ready.length})
-          </h2>
-          <div className="space-y-3">
-            {grouped.ready.length > 0 ? (
-              grouped.ready.map(renderOrderCard)
-            ) : (
-              <p className="text-sm text-emerald-700/70">No ready orders.</p>
-            )}
-          </div>
-        </section>
-
-        <section className="bg-[#f8fafc] border border-slate-200 rounded-2xl p-4">
-          <h2 className="text-sm font-bold text-slate-700 mb-3">
-            Completed ({grouped.completed.length})
-          </h2>
-          <div className="space-y-3">
-            {grouped.completed.length > 0 ? (
-              grouped.completed.map(renderOrderCard)
-            ) : (
-              <p className="text-sm text-slate-500">No completed orders.</p>
-            )}
-          </div>
-        </section>
-      </div>
-
-      <div className="mt-6 bg-white border border-slate-200 rounded-2xl p-4 text-sm text-slate-600">
-        Logged in as:{" "}
-        <span className="font-semibold text-slate-800">
-          {user?.name || "Admin"}
-        </span>
-      </div>
-    </div>
+    </AdminSidebarLayout>
   );
 };
 

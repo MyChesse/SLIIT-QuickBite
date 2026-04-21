@@ -28,6 +28,11 @@ import SupportPage from "./pages/SupportPage.jsx";
 import AdminFeedbackPage from "./pages/AdminFeedbackPage.jsx";
 import AdminComplaintsPage from "./pages/AdminComplaintsPage.jsx";
 import AdminInventoryPage from "./pages/AdminInventoryPage.jsx";
+import AdminViewOrders from "./pages/AdminViewOrders.jsx";
+import CartPage from "./components/CartPage.jsx";
+import BookingPage from "./components/BookingPage.jsx";
+import OrderStatusPage from "./components/OrderStatusPage.jsx";
+import CompletedOrders from "./pages/CompletedOrders.jsx";
 
 const App = () => {
   return (
@@ -105,6 +110,10 @@ const App = () => {
 
         {/* Student Routes */}
         <Route path="/menu" element={<SDMenuPage />} />
+        <Route path="/cart" element={<CartPage />} />
+        <Route path="/booking" element={<BookingPage />} />
+        <Route path="/order-status" element={<OrderStatusPage />} />
+        <Route path="/completed-orders" element={<CompletedOrders />} />
 
         {/* Protected User Routes */}
         <Route
@@ -189,6 +198,14 @@ const App = () => {
           element={
             <AdminProtectedRoute>
               <AdminInventoryPage />
+            </AdminProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/orders"
+          element={
+            <AdminProtectedRoute>
+              <AdminViewOrders />
             </AdminProtectedRoute>
           }
         />

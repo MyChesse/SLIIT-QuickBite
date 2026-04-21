@@ -3,11 +3,12 @@ import axios from "axios";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router";
 import toast from "react-hot-toast";
+import AdminSidebarLayout from "../components/AdminSidebarLayout";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5001";
 
 const AdminDashboard = () => {
-  const { user, token, logout } = useAuth();
+  const { user, token } = useAuth();
   const navigate = useNavigate();
   const [summary, setSummary] = useState({});
   const [users, setUsers] = useState([]);
@@ -346,12 +347,6 @@ const AdminDashboard = () => {
     }
   };
 
-  const handleLogout = () => {
-    logout();
-    toast.success("Logged out successfully");
-    navigate("/login");
-  };
-
   if (loading) {
     return (
       <div className="min-h-screen bg-[#f5f7fb] flex items-center justify-center px-4">
@@ -366,439 +361,325 @@ const AdminDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#f5f7fb] text-slate-800">
-      <div className="flex min-h-screen">
-        {/* Sidebar */}
-        <aside className="hidden lg:flex w-[250px] flex-col bg-white border-r border-slate-200 px-5 py-6">
-          <div className="mb-8">
+    <AdminSidebarLayout
+      activePage="users"
+      contentClassName="px-4 py-4 sm:px-6 lg:px-8"
+    >
+      <div>
+        {/* Top Header */}
+        <div className="bg-white border border-slate-200 rounded-[24px] px-5 py-4 shadow-sm mb-6">
+          <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4">
             <div className="flex items-center gap-3">
-              <div className="w-11 h-11 rounded-xl bg-blue-600 flex items-center justify-center text-white text-lg font-bold shadow-sm">
-                🎓
-              </div>
-              <div>
-                <h2 className="text-[28px] leading-none font-bold text-blue-900">
-                  Admin Portal
-                </h2>
-                <p className="text-[11px] font-semibold tracking-[0.12em] uppercase text-slate-500 mt-1">
-                  Canteen Management
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <nav className="space-y-2">
-            <button className="w-full flex items-center gap-3 rounded-xl bg-blue-50 text-blue-700 px-4 py-3 text-sm font-semibold">
-              <span className="text-base">👥</span>
-              <span>User Management</span>
-            </button>
-
-            <button
-              onClick={() => navigate("/admin/complaints")}
-              className="w-full flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-slate-600 hover:bg-slate-50 transition"
-            >
-              <span className="text-base">⚠️</span>
-              <span>Complaint Management</span>
-            </button>
-
-            <button
-              onClick={() => navigate("/admin/feedback")}
-              className="w-full flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-slate-600 hover:bg-slate-50 transition"
-            >
-              <span className="text-base">💬</span>
-              <span>Feedback Management</span>
-            </button>
-
-            <button
-              onClick={() => navigate("/admin/promotions")}
-              className="w-full flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-slate-600 hover:bg-slate-50 transition"
-            >
-              <span className="text-base">🍽️</span>
-              <span>Promotion Management</span>
-            </button>
-
-            <button
-              onClick={() => navigate("/admin/inventory")}
-              className="w-full flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-slate-600 hover:bg-slate-50 transition"
-            >
-              <span className="text-base">📦</span>
-              <span>Inventory</span>
-            </button>
-
-            <button className="w-full flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-slate-600 hover:bg-slate-50 transition">
-              <span className="text-base">🛒</span>
-              <span>Orders</span>
-            </button>
-
-            <button className="w-full flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-slate-600 hover:bg-slate-50 transition">
-              <span className="text-base">📊</span>
-              <span>Analytics</span>
-            </button>
-
-            <button
-              onClick={() => navigate("/admin/feedback")}
-              className="w-full flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-slate-600 hover:bg-slate-50 transition"
-            >
-              <span className="text-base">💬</span>
-              <span>Feedback</span>
-            </button>
-
-            <button
-              onClick={() => navigate("/admin/complaints")}
-              className="w-full flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-slate-600 hover:bg-slate-50 transition"
-            >
-              <span className="text-base">🛟</span>
-              <span>Complaints</span>
-            </button>
-          </nav>
-
-          <div className="mt-auto bg-slate-50 rounded-2xl p-4 border border-slate-200">
-            <div className="flex items-center gap-3">
-              <div className="w-11 h-11 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-sm">
-                {user?.name?.charAt(0)?.toUpperCase() || "A"}
-              </div>
-              <div className="min-w-0">
-                <p className="text-sm font-semibold text-slate-800 truncate">
-                  {user?.name || "Admin User"}
-                </p>
-                <p className="text-xs text-slate-500 truncate">
-                  {user?.email || "admin@sliit.lk"}
-                </p>
-              </div>
+              <button className="lg:hidden w-10 h-10 rounded-xl border border-slate-200 flex items-center justify-center text-slate-600">
+                ☰
+              </button>
+              <h1 className="text-[34px] font-bold text-blue-900 tracking-tight">
+                User Management
+              </h1>
             </div>
 
-            <button
-              onClick={() => navigate("/admin/analytics")}
-              className="w-full mt-4 rounded-xl bg-blue-600 text-white text-sm font-semibold py-2.5 hover:bg-blue-700 transition"
-            >
-              System Status
-            </button>
-
-            <button
-              onClick={handleLogout}
-              className="w-full mt-2 rounded-xl bg-red-500 text-white text-sm font-semibold py-2.5 hover:bg-red-600 transition"
-            >
-              Logout
-            </button>
-          </div>
-        </aside>
-
-        {/* Main */}
-        <main className="flex-1 px-4 py-4 sm:px-6 lg:px-8">
-          {/* Top Header */}
-          <div className="bg-white border border-slate-200 rounded-[24px] px-5 py-4 shadow-sm mb-6">
-            <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <button className="lg:hidden w-10 h-10 rounded-xl border border-slate-200 flex items-center justify-center text-slate-600">
-                  ☰
-                </button>
-                <h1 className="text-[34px] font-bold text-blue-900 tracking-tight">
-                  User Management
-                </h1>
-              </div>
-
-              <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                <div className="relative w-full sm:w-[280px]">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm">
-                    🔍
-                  </span>
-                  <input
-                    type="text"
-                    placeholder="Search by name, ID or email..."
-                    value={searchTerm}
-                    onChange={handleSearch}
-                    className="w-full h-12 rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-4 text-sm outline-none focus:bg-white focus:border-blue-500"
-                  />
-                </div>
-
-                <button className="h-12 px-4 rounded-xl border border-slate-200 bg-white text-slate-600 text-sm font-medium hover:bg-slate-50">
-                  ⏷
-                </button>
-
-                <button className="h-12 px-4 rounded-xl border border-slate-200 bg-white text-slate-600 text-sm font-medium hover:bg-slate-50">
-                  ⇩
-                </button>
-
-                <button
-                  onClick={() => setShowInviteModal(true)}
-                  className="h-12 px-5 rounded-xl bg-blue-600 text-white text-sm font-semibold shadow-sm hover:bg-blue-700 transition"
-                >
-                  + Invite User
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5 mb-6">
-            {summaryCards.map((card) => (
-              <div
-                key={card.title}
-                className="bg-white border border-slate-200 rounded-[24px] p-6 shadow-sm"
-              >
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <p className="text-[11px] uppercase tracking-[0.18em] text-slate-400 font-semibold">
-                      {card.title}
-                    </p>
-
-                    <div className="flex items-end gap-2 mt-4">
-                      <h3 className="text-[28px] sm:text-[34px] font-bold text-slate-900 leading-none">
-                        {card.value}
-                      </h3>
-                      <span
-                        className={`text-sm font-semibold ${card.badgeColor}`}
-                      >
-                        {card.badge}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center text-2xl opacity-70">
-                    {card.icon}
-                  </div>
-                </div>
-
-                <div className="mt-6 h-2 w-full rounded-full bg-slate-100 overflow-hidden">
-                  <div
-                    className={`h-full w-[65%] rounded-full ${card.barColor}`}
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Filter Bar */}
-          <div className="bg-[#eef4ff] border border-[#dbe7ff] rounded-[22px] px-5 py-4 mb-6">
-            <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4">
-              <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                <span className="text-sm font-medium text-slate-600">
-                  Filter By:
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+              <div className="relative w-full sm:w-[280px]">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm">
+                  🔍
                 </span>
-
-                <select
-                  value={roleFilter}
-                  onChange={handleRoleFilter}
-                  className="h-11 rounded-xl border border-slate-200 bg-white px-4 text-sm text-slate-700 outline-none focus:border-blue-500"
-                >
-                  <option value="all">All Roles</option>
-                  <option value="student">Student</option>
-                  <option value="staff">Staff</option>
-                  <option value="admin">Admin</option>
-                </select>
-
-                <select
-                  value={statusFilter}
-                  onChange={handleStatusFilter}
-                  className="h-11 rounded-xl border border-slate-200 bg-white px-4 text-sm text-slate-700 outline-none focus:border-blue-500"
-                >
-                  <option value="all">All Status</option>
-                  <option value="active">Active</option>
-                  <option value="suspended">Suspended</option>
-                </select>
-
-                <button
-                  onClick={clearFilters}
-                  className="h-11 px-4 rounded-xl bg-white text-blue-700 text-sm font-semibold border border-slate-200 hover:bg-slate-50"
-                >
-                  Clear Filters
-                </button>
+                <input
+                  type="text"
+                  placeholder="Search by name, ID or email..."
+                  value={searchTerm}
+                  onChange={handleSearch}
+                  className="w-full h-12 rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-4 text-sm outline-none focus:bg-white focus:border-blue-500"
+                />
               </div>
 
-              <p className="text-sm text-slate-500">
-                Showing {users.length} of {pagination.totalUsers || 0} users
-              </p>
+              <button className="h-12 px-4 rounded-xl border border-slate-200 bg-white text-slate-600 text-sm font-medium hover:bg-slate-50">
+                ⏷
+              </button>
+
+              <button className="h-12 px-4 rounded-xl border border-slate-200 bg-white text-slate-600 text-sm font-medium hover:bg-slate-50">
+                ⇩
+              </button>
+
+              <button
+                onClick={() => setShowInviteModal(true)}
+                className="h-12 px-5 rounded-xl bg-blue-600 text-white text-sm font-semibold shadow-sm hover:bg-blue-700 transition"
+              >
+                + Invite User
+              </button>
             </div>
           </div>
+        </div>
 
-          {/* Users Table */}
-          <div className="bg-white border border-slate-200 rounded-[28px] shadow-sm overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="min-w-full">
-                <thead className="bg-[#f4f7fd]">
-                  <tr>
-                    <th className="px-6 py-5 text-left text-[11px] uppercase tracking-[0.15em] text-slate-400 font-semibold">
-                      User Profile
-                    </th>
-                    <th className="px-6 py-5 text-left text-[11px] uppercase tracking-[0.15em] text-slate-400 font-semibold">
-                      ID & Contact
-                    </th>
-                    <th className="px-6 py-5 text-left text-[11px] uppercase tracking-[0.15em] text-slate-400 font-semibold">
-                      Role
-                    </th>
-                    <th className="px-6 py-5 text-left text-[11px] uppercase tracking-[0.15em] text-slate-400 font-semibold">
-                      Status
-                    </th>
-                    <th className="px-6 py-5 text-left text-[11px] uppercase tracking-[0.15em] text-slate-400 font-semibold">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
+        {/* Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5 mb-6">
+          {summaryCards.map((card) => (
+            <div
+              key={card.title}
+              className="bg-white border border-slate-200 rounded-[24px] p-6 shadow-sm"
+            >
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-[11px] uppercase tracking-[0.18em] text-slate-400 font-semibold">
+                    {card.title}
+                  </p>
 
-                <tbody>
-                  {users.map((item) => {
-                    const statusInfo = getStatusStyles(item.status);
+                  <div className="flex items-end gap-2 mt-4">
+                    <h3 className="text-[28px] sm:text-[34px] font-bold text-slate-900 leading-none">
+                      {card.value}
+                    </h3>
+                    <span
+                      className={`text-sm font-semibold ${card.badgeColor}`}
+                    >
+                      {card.badge}
+                    </span>
+                  </div>
+                </div>
 
-                    return (
-                      <tr
-                        key={item._id}
-                        className="border-t border-slate-200 hover:bg-slate-50 transition"
-                      >
-                        <td className="px-6 py-5">
-                          <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 rounded-xl bg-slate-200 flex items-center justify-center text-sm font-bold text-slate-700">
-                              {item.name?.charAt(0)?.toUpperCase() || "U"}
-                            </div>
-                            <div>
-                              <p className="text-[15px] font-semibold text-slate-800">
-                                {item.name}
-                              </p>
-                              <p className="text-xs text-slate-400">
-                                Joined{" "}
-                                {new Date(item.createdAt).toLocaleDateString()}
-                              </p>
-                            </div>
+                <div className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center text-2xl opacity-70">
+                  {card.icon}
+                </div>
+              </div>
+
+              <div className="mt-6 h-2 w-full rounded-full bg-slate-100 overflow-hidden">
+                <div
+                  className={`h-full w-[65%] rounded-full ${card.barColor}`}
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Filter Bar */}
+        <div className="bg-[#eef4ff] border border-[#dbe7ff] rounded-[22px] px-5 py-4 mb-6">
+          <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+              <span className="text-sm font-medium text-slate-600">
+                Filter By:
+              </span>
+
+              <select
+                value={roleFilter}
+                onChange={handleRoleFilter}
+                className="h-11 rounded-xl border border-slate-200 bg-white px-4 text-sm text-slate-700 outline-none focus:border-blue-500"
+              >
+                <option value="all">All Roles</option>
+                <option value="student">Student</option>
+                <option value="staff">Staff</option>
+                <option value="admin">Admin</option>
+              </select>
+
+              <select
+                value={statusFilter}
+                onChange={handleStatusFilter}
+                className="h-11 rounded-xl border border-slate-200 bg-white px-4 text-sm text-slate-700 outline-none focus:border-blue-500"
+              >
+                <option value="all">All Status</option>
+                <option value="active">Active</option>
+                <option value="suspended">Suspended</option>
+              </select>
+
+              <button
+                onClick={clearFilters}
+                className="h-11 px-4 rounded-xl bg-white text-blue-700 text-sm font-semibold border border-slate-200 hover:bg-slate-50"
+              >
+                Clear Filters
+              </button>
+            </div>
+
+            <p className="text-sm text-slate-500">
+              Showing {users.length} of {pagination.totalUsers || 0} users
+            </p>
+          </div>
+        </div>
+
+        {/* Users Table */}
+        <div className="bg-white border border-slate-200 rounded-[28px] shadow-sm overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="min-w-full">
+              <thead className="bg-[#f4f7fd]">
+                <tr>
+                  <th className="px-6 py-5 text-left text-[11px] uppercase tracking-[0.15em] text-slate-400 font-semibold">
+                    User Profile
+                  </th>
+                  <th className="px-6 py-5 text-left text-[11px] uppercase tracking-[0.15em] text-slate-400 font-semibold">
+                    ID & Contact
+                  </th>
+                  <th className="px-6 py-5 text-left text-[11px] uppercase tracking-[0.15em] text-slate-400 font-semibold">
+                    Role
+                  </th>
+                  <th className="px-6 py-5 text-left text-[11px] uppercase tracking-[0.15em] text-slate-400 font-semibold">
+                    Status
+                  </th>
+                  <th className="px-6 py-5 text-left text-[11px] uppercase tracking-[0.15em] text-slate-400 font-semibold">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {users.map((item) => {
+                  const statusInfo = getStatusStyles(item.status);
+
+                  return (
+                    <tr
+                      key={item._id}
+                      className="border-t border-slate-200 hover:bg-slate-50 transition"
+                    >
+                      <td className="px-6 py-5">
+                        <div className="flex items-center gap-4">
+                          <div className="w-12 h-12 rounded-xl bg-slate-200 flex items-center justify-center text-sm font-bold text-slate-700">
+                            {item.name?.charAt(0)?.toUpperCase() || "U"}
                           </div>
-                        </td>
+                          <div>
+                            <p className="text-[15px] font-semibold text-slate-800">
+                              {item.name}
+                            </p>
+                            <p className="text-xs text-slate-400">
+                              Joined{" "}
+                              {new Date(item.createdAt).toLocaleDateString()}
+                            </p>
+                          </div>
+                        </div>
+                      </td>
 
-                        <td className="px-6 py-5">
-                          <p className="text-sm font-semibold text-slate-700">
-                            {item._id?.slice(-8)?.toUpperCase()}
-                          </p>
-                          <p className="text-sm text-slate-500">{item.email}</p>
-                        </td>
+                      <td className="px-6 py-5">
+                        <p className="text-sm font-semibold text-slate-700">
+                          {item._id?.slice(-8)?.toUpperCase()}
+                        </p>
+                        <p className="text-sm text-slate-500">{item.email}</p>
+                      </td>
 
-                        <td className="px-6 py-5">
+                      <td className="px-6 py-5">
+                        <span
+                          className={`inline-flex items-center rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-wide ${getRoleStyles(
+                            item.role,
+                          )}`}
+                        >
+                          {item.role}
+                        </span>
+                      </td>
+
+                      <td className="px-6 py-5">
+                        <div className="flex items-center gap-2">
                           <span
-                            className={`inline-flex items-center rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-wide ${getRoleStyles(
-                              item.role,
-                            )}`}
+                            className={`w-2.5 h-2.5 rounded-full ${statusInfo.dot}`}
+                          />
+                          <span
+                            className={`text-sm font-semibold ${statusInfo.text}`}
                           >
-                            {item.role}
+                            {statusInfo.label}
                           </span>
-                        </td>
+                        </div>
+                      </td>
 
-                        <td className="px-6 py-5">
-                          <div className="flex items-center gap-2">
-                            <span
-                              className={`w-2.5 h-2.5 rounded-full ${statusInfo.dot}`}
-                            />
-                            <span
-                              className={`text-sm font-semibold ${statusInfo.text}`}
-                            >
-                              {statusInfo.label}
-                            </span>
-                          </div>
-                        </td>
-
-                        <td className="px-6 py-5">
-                          <div className="flex items-center gap-4">
+                      <td className="px-6 py-5">
+                        <div className="flex items-center gap-4">
+                          <button
+                            onClick={() => handleViewProfile(item._id)}
+                            className="text-sm font-semibold text-blue-600 hover:text-blue-700"
+                          >
+                            View Profile
+                          </button>
+                          <div className="relative">
                             <button
-                              onClick={() => handleViewProfile(item._id)}
-                              className="text-sm font-semibold text-blue-600 hover:text-blue-700"
+                              onClick={() =>
+                                setOpenMenuId(
+                                  openMenuId === item._id ? null : item._id,
+                                )
+                              }
+                              className="text-slate-400 hover:text-slate-600 text-lg"
                             >
-                              View Profile
+                              ⋮
                             </button>
-                            <div className="relative">
-                              <button
-                                onClick={() =>
-                                  setOpenMenuId(
-                                    openMenuId === item._id ? null : item._id,
-                                  )
-                                }
-                                className="text-slate-400 hover:text-slate-600 text-lg"
-                              >
-                                ⋮
-                              </button>
 
-                              {/* Dropdown menu */}
-                              {openMenuId === item._id && (
-                                <div className="absolute right-0 mt-2 w-40 bg-white border border-slate-200 rounded-lg shadow-lg z-10">
-                                  <button
-                                    onClick={() => handleEditUser(item)}
-                                    className="w-full text-left px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 border-b border-slate-200 font-medium"
-                                  >
-                                    ✏️ Edit User
-                                  </button>
-                                  <button
-                                    onClick={() =>
-                                      handleSuspendUser(item._id, item.status)
-                                    }
-                                    disabled={actionLoading}
-                                    className="w-full text-left px-4 py-2.5 text-sm text-orange-600 hover:bg-slate-50 border-b border-slate-200 font-medium disabled:opacity-50"
-                                  >
-                                    {item.status === "active"
-                                      ? "🔒 Suspend User"
-                                      : "🔓 Activate User"}
-                                  </button>
-                                  <button
-                                    onClick={() => handleDeleteUser(item._id)}
-                                    disabled={actionLoading}
-                                    className="w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 font-medium disabled:opacity-50"
-                                  >
-                                    🗑️ Delete User
-                                  </button>
-                                </div>
-                              )}
-                            </div>
+                            {/* Dropdown menu */}
+                            {openMenuId === item._id && (
+                              <div className="absolute right-0 mt-2 w-40 bg-white border border-slate-200 rounded-lg shadow-lg z-10">
+                                <button
+                                  onClick={() => handleEditUser(item)}
+                                  className="w-full text-left px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 border-b border-slate-200 font-medium"
+                                >
+                                  ✏️ Edit User
+                                </button>
+                                <button
+                                  onClick={() =>
+                                    handleSuspendUser(item._id, item.status)
+                                  }
+                                  disabled={actionLoading}
+                                  className="w-full text-left px-4 py-2.5 text-sm text-orange-600 hover:bg-slate-50 border-b border-slate-200 font-medium disabled:opacity-50"
+                                >
+                                  {item.status === "active"
+                                    ? "🔒 Suspend User"
+                                    : "🔓 Activate User"}
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteUser(item._id)}
+                                  disabled={actionLoading}
+                                  className="w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 font-medium disabled:opacity-50"
+                                >
+                                  🗑️ Delete User
+                                </button>
+                              </div>
+                            )}
                           </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-
-                  {users.length === 0 && (
-                    <tr>
-                      <td
-                        colSpan="5"
-                        className="px-6 py-10 text-center text-slate-500"
-                      >
-                        No users found.
+                        </div>
                       </td>
                     </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
+                  );
+                })}
 
-            {/* Pagination */}
-            <div className="flex items-center justify-between px-6 py-5 border-t border-slate-200">
-              <button
-                onClick={() => handlePageChange(currentPage - 1)}
-                disabled={!pagination.hasPrev}
-                className="text-sm font-medium text-slate-500 hover:text-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                ‹ Previous
-              </button>
-
-              <div className="flex items-center gap-2">
-                {Array.from(
-                  { length: pagination.totalPages || 1 },
-                  (_, i) => i + 1,
-                ).map((page) => (
-                  <button
-                    key={page}
-                    onClick={() => handlePageChange(page)}
-                    className={`w-9 h-9 rounded-lg text-sm font-semibold ${
-                      page === currentPage
-                        ? "bg-blue-600 text-white"
-                        : "text-slate-600 hover:bg-slate-100"
-                    }`}
-                  >
-                    {page}
-                  </button>
-                ))}
-              </div>
-
-              <button
-                onClick={() => handlePageChange(currentPage + 1)}
-                disabled={!pagination.hasNext}
-                className="text-sm font-medium text-slate-500 hover:text-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Next ›
-              </button>
-            </div>
+                {users.length === 0 && (
+                  <tr>
+                    <td
+                      colSpan="5"
+                      className="px-6 py-10 text-center text-slate-500"
+                    >
+                      No users found.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
           </div>
-        </main>
+
+          {/* Pagination */}
+          <div className="flex items-center justify-between px-6 py-5 border-t border-slate-200">
+            <button
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={!pagination.hasPrev}
+              className="text-sm font-medium text-slate-500 hover:text-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              ‹ Previous
+            </button>
+
+            <div className="flex items-center gap-2">
+              {Array.from(
+                { length: pagination.totalPages || 1 },
+                (_, i) => i + 1,
+              ).map((page) => (
+                <button
+                  key={page}
+                  onClick={() => handlePageChange(page)}
+                  className={`w-9 h-9 rounded-lg text-sm font-semibold ${
+                    page === currentPage
+                      ? "bg-blue-600 text-white"
+                      : "text-slate-600 hover:bg-slate-100"
+                  }`}
+                >
+                  {page}
+                </button>
+              ))}
+            </div>
+
+            <button
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={!pagination.hasNext}
+              className="text-sm font-medium text-slate-500 hover:text-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Next ›
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* Invite User Modal */}
@@ -1084,7 +965,7 @@ const AdminDashboard = () => {
           </div>
         </div>
       )}
-    </div>
+    </AdminSidebarLayout>
   );
 };
 

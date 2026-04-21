@@ -41,6 +41,9 @@ const formatDateOnly = (value) => {
   });
 };
 
+const displayStatus = (status) =>
+  status === "Accepted" ? "Preparing" : status;
+
 const sanitizeFileName = (value) =>
   String(value || "receipt")
     .replace(/[^a-z0-9-_]+/gi, "-")
@@ -82,7 +85,12 @@ const OrderStatusPage = () => {
         setLoading(true);
       }
       const response = await api.get("/orders");
-      setOrders(response.data.filter((order) => order.status !== "Cancelled"));
+      setOrders(
+        response.data.filter(
+          (order) =>
+            order.status !== "Cancelled" && order.status !== "Completed",
+        ),
+      );
     } catch (error) {
       console.error("Error fetching orders:", error);
     } finally {
@@ -198,7 +206,7 @@ const OrderStatusPage = () => {
       doc.setFont("helvetica", "bold");
       doc.text("Status:", pageWidth - 72, 58);
       doc.setFont("helvetica", "normal");
-      doc.text(order.status, pageWidth - 48, 58);
+      doc.text(displayStatus(order.status), pageWidth - 48, 58);
 
       doc.setFont("helvetica", "bold");
       doc.text("Generated:", pageWidth - 72, 66);
@@ -289,7 +297,7 @@ const OrderStatusPage = () => {
       doc.text("Status", margin + 6, summaryY + 24);
       doc.setFont("helvetica", "normal");
       doc.text(
-        String(order.status || "-"),
+        String(displayStatus(order.status) || "-"),
         pageWidth - margin - 6,
         summaryY + 24,
         {
@@ -346,7 +354,7 @@ const OrderStatusPage = () => {
                 fontWeight: s === status ? "bold" : "normal",
               }}
             >
-              {s}
+              {displayStatus(s)}
             </span>
             {index < statuses.length - 1 && (
               <div
@@ -430,16 +438,14 @@ const OrderStatusPage = () => {
     try {
       await api.put(`/orders/${encodeURIComponent(completeTargetId)}/complete`);
       setOrders((prev) =>
-        prev.map((order) =>
-          normalizeOrderId(order._id) === completeTargetId
-            ? { ...order, status: "Completed" }
-            : order,
+        prev.filter(
+          (order) => normalizeOrderId(order._id) !== completeTargetId,
         ),
       );
       setPopup({
         open: true,
         type: "success",
-        message: "Order marked as completed.",
+        message: "Order marked as completed and moved to Completed Orders.",
       });
     } catch (error) {
       console.error("Error completing order:", error);
@@ -504,7 +510,12 @@ const OrderStatusPage = () => {
 
       {currentOrder && justPlaced && (
         <div style={styles.newOrderAlert}>
-          <h2 style={styles.newOrderTitle}>🎉 Order Placed Successfully!</h2>
+          <h2 style={styles.newOrderTitle}>Your Order is Pending</h2>
+          <div style={{ textAlign: "center", marginBottom: "16px" }}>
+            <button style={styles.shopButton} onClick={() => navigate("/menu")}>
+              Go To Menu Page
+            </button>
+          </div>
           <div style={styles.newOrderCard}>
             <div style={styles.orderHeader}>
               <h3 style={styles.orderTitle}>Order ID: {currentOrder._id}</h3>
@@ -514,7 +525,8 @@ const OrderStatusPage = () => {
                   backgroundColor: getStatusColor(currentOrder.status),
                 }}
               >
-                {getStatusEmoji(currentOrder.status)} {currentOrder.status}
+                {getStatusEmoji(currentOrder.status)}{" "}
+                {displayStatus(currentOrder.status)}
               </span>
             </div>
 
@@ -589,7 +601,7 @@ const OrderStatusPage = () => {
                       backgroundColor: getStatusColor(order.status),
                     }}
                   >
-                    {getStatusEmoji(order.status)} {order.status}
+                    {getStatusEmoji(order.status)} {displayStatus(order.status)}
                   </span>
                 </div>
 
@@ -672,6 +684,12 @@ const OrderStatusPage = () => {
         </button>
         <button style={styles.menuButton} onClick={() => navigate("/menu")}>
           🍽️ Go to Menu
+        </button>
+        <button
+          style={styles.completedButton}
+          onClick={() => navigate("/completed-orders")}
+        >
+          ✅ Completed Orders
         </button>
         <button style={styles.backButton} onClick={() => navigate("/")}>
           🛍️ Continue Shopping
@@ -927,6 +945,16 @@ const styles = {
   },
   menuButton: {
     backgroundColor: "#0ea5e9",
+    color: "white",
+    border: "none",
+    padding: "12px 24px",
+    borderRadius: "8px",
+    cursor: "pointer",
+    fontSize: "16px",
+    fontWeight: "600",
+  },
+  completedButton: {
+    backgroundColor: "#7c3aed",
     color: "white",
     border: "none",
     padding: "12px 24px",
