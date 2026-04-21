@@ -29,6 +29,7 @@ import AdminFeedbackPage from "./pages/AdminFeedbackPage.jsx";
 import AdminComplaintsPage from "./pages/AdminComplaintsPage.jsx";
 import AdminInventoryPage from "./pages/AdminInventoryPage.jsx";
 import AdminViewOrders from "./pages/AdminViewOrders.jsx";
+import Analytics from "./pages/Analytics.jsx";
 import CartPage from "./components/CartPage.jsx";
 import BookingPage from "./components/BookingPage.jsx";
 import OrderStatusPage from "./components/OrderStatusPage.jsx";
@@ -206,6 +207,14 @@ const App = () => {
           element={
             <AdminProtectedRoute>
               <AdminViewOrders />
+            </AdminProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/analytics"
+          element={
+            <AdminProtectedRoute>
+              <Analytics />
             </AdminProtectedRoute>
           }
         />

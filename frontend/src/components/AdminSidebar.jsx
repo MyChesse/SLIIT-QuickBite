@@ -98,7 +98,12 @@ const AdminSidebar = ({ activePage = "" }) => {
           <span>Orders</span>
         </button>
 
-        <button className={sidebarButtonClass}>
+        <button
+          onClick={() => navigate("/admin/analytics")}
+          className={
+            activePage === "analytics" ? sidebarActiveClass : sidebarButtonClass
+          }
+        >
           <span className="text-base">📊</span>
           <span>Analytics</span>
         </button>
