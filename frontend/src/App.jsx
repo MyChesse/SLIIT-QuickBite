@@ -1,33 +1,38 @@
-import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
-import { Toaster } from 'react-hot-toast';
+import React from "react";
+import { Routes, Route, Navigate } from "react-router-dom";
+import { Toaster } from "react-hot-toast";
 
 // Components
-import ProtectedRoute from './components/ProtectedRoute';
-import AdminProtectedRoute from './components/AdminProtectedRoute';
-import StaffProtectedRoute from './components/StaffProtectedRoute';
+import ProtectedRoute from "./components/ProtectedRoute";
+import AdminProtectedRoute from "./components/AdminProtectedRoute";
+import StaffProtectedRoute from "./components/StaffProtectedRoute";
 
 // Pages
-import SDInventoryPage from './pages/SDInventoryPage';
-import SDMenuPage from './pages/SDMenuPage';
-import Register from './pages/Register';
-import Login from './pages/Login';
-import UserDashboard from './pages/UserDashboard';
-import Profile from './pages/Profile';
-import AdminDashboard from './pages/AdminDashboard';
-import DailyPromotions from './pages/DailyPromotions';
-import AddNewCanteenPromotion from './pages/AddNewCanteenPromotion';
-import AddBasementCanteenPromotion from './pages/AddBasementCanteenPromotion';
-import AddAnohanaCanteenPromotion from './pages/AddAnohanaCanteenPromotion';
-import StaffOrdersPage from './pages/StaffOrdersPage';
-import StaffReportsPage from './pages/StaffReportsPage';
-import StaffPromotionSelection from './pages/StaffPromotionSelection';
-import StaffCanteenComplaintsPage from './pages/StaffCanteenComplaintsPage';
-import CanteenSelection from './pages/CanteenSelection';
-import SupportPage from './pages/SupportPage.jsx';
-import AdminFeedbackPage from './pages/AdminFeedbackPage.jsx';
-import AdminComplaintsPage from './pages/AdminComplaintsPage.jsx';
-import AdminInventoryPage from './pages/AdminInventoryPage.jsx';
+import SDInventoryPage from "./pages/SDInventoryPage";
+import SDMenuPage from "./pages/SDMenuPage";
+import Register from "./pages/Register";
+import Login from "./pages/Login";
+import UserDashboard from "./pages/UserDashboard";
+import Profile from "./pages/Profile";
+import AdminDashboard from "./pages/AdminDashboard";
+import DailyPromotions from "./pages/DailyPromotions";
+import AddNewCanteenPromotion from "./pages/AddNewCanteenPromotion";
+import AddBasementCanteenPromotion from "./pages/AddBasementCanteenPromotion";
+import AddAnohanaCanteenPromotion from "./pages/AddAnohanaCanteenPromotion";
+import StaffOrdersPage from "./pages/StaffOrdersPage";
+import StaffReportsPage from "./pages/StaffReportsPage";
+import StaffPromotionSelection from "./pages/StaffPromotionSelection";
+import StaffCanteenComplaintsPage from "./pages/StaffCanteenComplaintsPage";
+import CanteenSelection from "./pages/CanteenSelection";
+import SupportPage from "./pages/SupportPage.jsx";
+import AdminFeedbackPage from "./pages/AdminFeedbackPage.jsx";
+import AdminComplaintsPage from "./pages/AdminComplaintsPage.jsx";
+import AdminInventoryPage from "./pages/AdminInventoryPage.jsx";
+import AdminViewOrders from "./pages/AdminViewOrders.jsx";
+import CartPage from "./components/CartPage.jsx";
+import BookingPage from "./components/BookingPage.jsx";
+import OrderStatusPage from "./components/OrderStatusPage.jsx";
+import CompletedOrders from "./pages/CompletedOrders.jsx";
 
 const App = () => {
   return (
@@ -105,6 +110,10 @@ const App = () => {
 
         {/* Student Routes */}
         <Route path="/menu" element={<SDMenuPage />} />
+        <Route path="/cart" element={<CartPage />} />
+        <Route path="/booking" element={<BookingPage />} />
+        <Route path="/order-status" element={<OrderStatusPage />} />
+        <Route path="/completed-orders" element={<CompletedOrders />} />
 
         {/* Protected User Routes */}
         <Route
@@ -189,6 +198,14 @@ const App = () => {
           element={
             <AdminProtectedRoute>
               <AdminInventoryPage />
+            </AdminProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/orders"
+          element={
+            <AdminProtectedRoute>
+              <AdminViewOrders />
             </AdminProtectedRoute>
           }
         />

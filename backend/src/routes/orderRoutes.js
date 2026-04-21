@@ -11,6 +11,12 @@ const createOrder = async (req, res) => {
     const { studentName, studentId, items, total, pickupDate, pickupTime } =
       req.body;
 
+    if (!/^IT\d{8}$/.test(String(studentId || "").toUpperCase())) {
+      return res
+        .status(400)
+        .json({ error: "Student ID must be in format IT12345678" });
+    }
+
     if (!Array.isArray(items) || items.length === 0) {
       console.error("Validation error: Cart cannot be empty");
       return res.status(400).json({ error: "Cart cannot be empty" });
@@ -198,6 +204,7 @@ router.put("/:id/complete", async (req, res) => {
     }
 
     order.status = "Completed";
+    order.completedAt = new Date();
     await order.save();
 
     res.json({ message: "Order completed successfully", order });
