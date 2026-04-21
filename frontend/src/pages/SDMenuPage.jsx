@@ -2,7 +2,6 @@ import { useState, useEffect, useContext } from "react";
 import { SDCanteenContext } from "../context/SDCanteenContext";
 import { CartContext } from "../context/CartContext";
 import SDMenuItemCard from "../components/SDMenuItemCard";
-import ramen from "../assets/ramen.jpg";
 import api from "../services/api";
 import { feedbackAPI } from "../services/api";
 import SDFooter from "../components/SDFooter";
@@ -19,6 +18,8 @@ const SDMenuPage = () => {
   const [feedbackList, setFeedbackList] = useState([]);
   const [feedbackLoading, setFeedbackLoading] = useState(false);
   const [feedbackError, setFeedbackError] = useState("");
+  const [todaysPromotions, setTodaysPromotions] = useState([]);
+  const [promotionLoading, setPromotionLoading] = useState(false);
 
   const selectedCanteen = canteens.find(
     (canteen) => canteen._id === selectedCanteenId,
@@ -54,12 +55,51 @@ const SDMenuPage = () => {
     }
   };
 
+  const normalizeCanteenName = (canteenName) => {
+    switch ((canteenName || "").trim()) {
+      case "New canteen":
+      case "New Canteen":
+        return "Main Canteen";
+      case "Basement canteen":
+      case "Basement Canteen":
+        return "Hostel Canteen";
+      case "Anohana Canteen":
+        return "Mini Canteen";
+      default:
+        return canteenName || "Unknown";
+    }
+  };
+
+  const fetchTodaysPromotions = async () => {
+    setPromotionLoading(true);
+    try {
+      const response = await fetch(
+        "http://localhost:5001/api/promotions/today",
+      );
+      if (!response.ok) {
+        throw new Error("Failed to fetch daily promotions");
+      }
+
+      const data = await response.json();
+      setTodaysPromotions(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error(error);
+      setTodaysPromotions([]);
+    } finally {
+      setPromotionLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchMenuItems();
   }, [selectedCanteenId]);
 
   useEffect(() => {
     fetchFeedback();
+  }, []);
+
+  useEffect(() => {
+    fetchTodaysPromotions();
   }, []);
 
   // Live search + category filter
@@ -78,6 +118,14 @@ const SDMenuPage = () => {
           selectedCanteenName.trim().toLowerCase(),
       )
     : feedbackList;
+
+  const dailyPromotionForCanteen = selectedCanteenName
+    ? todaysPromotions.find(
+        (promotion) =>
+          normalizeCanteenName(promotion.canteenName).trim().toLowerCase() ===
+          selectedCanteenName.trim().toLowerCase(),
+      )
+    : null;
 
   const getFeedbackCanteenLabel = (canteen) => {
     const normalizedCanteen = canteen?.trim();
@@ -104,15 +152,33 @@ const SDMenuPage = () => {
     ));
   };
 
-  const handleAddSpecialToCart = () => {
-    const specialItem = {
-      _id: "todays-special-ramen",
-      name: "Sri Lankan Spiced Ramen Noodles",
-      price: 850,
+  const handleAddPromotionToCart = () => {
+    if (!dailyPromotionForCanteen) {
+      toast.error("No daily promotion available for this canteen");
+      return;
+    }
+
+    if (dailyPromotionForCanteen.isAvailable === false) {
+      toast.error("This promotion is currently unavailable");
+      return;
+    }
+
+    const promotionPrice = Number(dailyPromotionForCanteen.discountedPrice);
+    if (!Number.isFinite(promotionPrice) || promotionPrice <= 0) {
+      toast.error("Invalid promotion price");
+      return;
+    }
+
+    const promotionItem = {
+      _id:
+        dailyPromotionForCanteen._id ||
+        `promo-${selectedCanteenId || "canteen"}`,
+      name: dailyPromotionForCanteen.title || "Daily Promotion",
+      price: promotionPrice,
     };
 
-    addToCart(specialItem);
-    toast.success("Today's special added to cart!");
+    addToCart(promotionItem);
+    toast.success("Daily promotion added to cart!");
   };
 
   return (
@@ -122,50 +188,96 @@ const SDMenuPage = () => {
       <SDHeader />
 
       <main className="pt-28 pb-12 px-8 max-w-7xl mx-auto">
-        {/* Hero */}
-        <section className="relative h-[460px] rounded-3xl overflow-hidden mb-16 shadow-xl">
-          <img
-            src={ramen}
-            alt="Today's Special"
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-transparent" />
-
-          <div className="absolute inset-0 flex items-center px-12">
-            <div className="max-w-xl text-white">
-              <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-md px-5 py-2 rounded-full text-sm font-medium mb-6">
-                <span className="material-symbols-outlined">star</span>
-                TODAY'S SPECIAL
+        {/* Daily Promotion For Selected Canteen */}
+        <section className="relative mb-12 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xl">
+          {promotionLoading ? (
+            <div className="flex min-h-[260px] items-center justify-center">
+              <p className="text-slate-600 font-medium">
+                Loading today's promotion...
+              </p>
+            </div>
+          ) : dailyPromotionForCanteen ? (
+            <div className="grid grid-cols-1 lg:grid-cols-2">
+              <div className="relative min-h-[260px] lg:min-h-[340px]">
+                {dailyPromotionForCanteen.image ? (
+                  <img
+                    src={dailyPromotionForCanteen.image}
+                    alt={dailyPromotionForCanteen.title}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center bg-slate-100">
+                    <span className="material-symbols-outlined text-6xl text-slate-400">
+                      restaurant
+                    </span>
+                  </div>
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/10 to-transparent" />
               </div>
-              <h1 className="text-6xl font-black leading-tight mb-6">
-                Sri Lankan Spiced
-                <br /> Ramen Noodles
-              </h1>
-              <p className="text-lg text-white/90 mb-8 max-w-md">
-                Skip the queue! Pre-order our chef's special and enjoy a free
-                drink on us.
-              </p>
-              <button
-                onClick={handleAddSpecialToCart}
-                className="bg-white text-blue-700 px-10 py-4 rounded-2xl font-bold text-lg hover:scale-105 active:scale-95 transition-all shadow-lg flex items-center gap-3"
-              >
-                Order Now — Rs. 850
-                <span className="material-symbols-outlined">shopping_cart</span>
-              </button>
-            </div>
-          </div>
 
-          <div className="absolute bottom-10 right-10 bg-white/95 backdrop-blur-md px-6 py-4 rounded-3xl shadow-xl flex items-center gap-4">
-            <span className="material-symbols-outlined text-orange-500 text-4xl">
-              timer
-            </span>
-            <div>
-              <p className="text-xs font-medium text-gray-500">
-                ESTIMATED WAIT
-              </p>
-              <p className="text-3xl font-bold text-gray-900">12 MIN</p>
+              <div className="flex flex-col justify-between p-6 lg:p-8">
+                <div>
+                  <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-blue-50 px-4 py-1.5 text-xs font-semibold text-blue-700">
+                    <span className="material-symbols-outlined text-base">
+                      local_fire_department
+                    </span>
+                    DAILY PROMOTION ·{" "}
+                    {selectedCanteenName || "Selected Canteen"}
+                  </div>
+
+                  <h2 className="text-3xl font-black leading-tight text-slate-900">
+                    {dailyPromotionForCanteen.title}
+                  </h2>
+
+                  <p className="mt-3 text-sm leading-relaxed text-slate-600">
+                    {dailyPromotionForCanteen.description ||
+                      "Special limited-time offer for today."}
+                  </p>
+                </div>
+
+                <div className="mt-6">
+                  <div className="mb-4 flex items-end justify-between gap-4">
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                        Now
+                      </p>
+                      <p className="text-3xl font-black text-blue-700">
+                        Rs. {dailyPromotionForCanteen.discountedPrice}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-xs text-slate-500">Was</p>
+                      <p className="text-sm text-slate-400 line-through">
+                        Rs. {dailyPromotionForCanteen.originalPrice}
+                      </p>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={handleAddPromotionToCart}
+                    className="inline-flex items-center gap-2 rounded-2xl bg-blue-600 px-6 py-3 text-sm font-bold text-white transition hover:bg-blue-700"
+                  >
+                    Add Promotion to Cart
+                    <span className="material-symbols-outlined text-lg">
+                      shopping_cart
+                    </span>
+                  </button>
+                </div>
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="flex min-h-[220px] flex-col items-center justify-center px-6 text-center">
+              <span className="material-symbols-outlined mb-3 text-5xl text-slate-300">
+                local_offer
+              </span>
+              <h2 className="text-xl font-bold text-slate-700">
+                No daily promotion for this canteen
+              </h2>
+              <p className="mt-2 text-sm text-slate-500">
+                Select another canteen or check back later for new offers.
+              </p>
+            </div>
+          )}
         </section>
 
         {/* Menu Search */}
