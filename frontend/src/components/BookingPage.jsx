@@ -18,7 +18,7 @@ const BookingPage = () => {
   const [success, setSuccess] = useState("");
   const [showPendingMessage, setShowPendingMessage] = useState(false);
 
-  const studentId = `IT${studentIdDigits}`;
+  //const studentId = `IT${studentIdDigits}`;
 
   const today = new Date().toISOString().split("T")[0];
 
@@ -34,6 +34,11 @@ const BookingPage = () => {
     const digitsOnly = e.target.value.replace(/\D/g, "").slice(0, 8);
     setStudentIdDigits(digitsOnly);
   };
+
+  // const handleNameChange = (e) => {
+  //   const capitalized = capitalizeName(e.target.value);
+  //   setStudentName(capitalized);
+  // };
 
   const calculateTotal = () => {
     return cart.reduce((total, item) => total + item.price * item.quantity, 0);
